@@ -2,50 +2,84 @@
 MOC Reporting
 =============
 
-## Goals
+## Goal
 
-The utlimate goal of the MOC Reporting project is to build usage monitoring 
-functionality into the MOC and a basic analytics system to leverage the data 
-produced by the monitoring system. The current expectation is that the project 
-will be focused on instrumenting MOC systems to provide the appropriate hooks 
-for a data collection system and implementing that collection system. 
+The ultimate goal of the MOC Reporting project is to generate actionable
+business objects in the form of summary usage reports. The system must be able
+to generate these reports across the axes of Institution, Project, and User.
 
 
 ## Users and Personas
 
-Three Primary Groups are relevant for discussion the goals of the project. The
-following definitions will be used throughout this document:
- - MOC Administrators: technical personel at the MOC who are responsible for 
+Three Primary Groups are relevant for discussing the goals of the project. The
+following definitions will be used throughout this document and repository:
+ - MOC Administrators: technical personnel at the MOC who are responsible for
    MOC operations and generating MOC billing and usage reports
- - Partner Administrators: Persons-of-Contact at MOC partner corporations 
-   and institutions who are responsible for the partner's investment in and 
+ - Partner Administrators: Persons-of-Contact at MOC partner corporations
+   and institutions who are responsible for the partner's investment in and
    participation with the MOC
  - Partner Users: researchers and engineers who use the MOC in their day-to-day
    tasks
 
-The project will begin by targeting MOC Administrators (Rob) who need to produce
+The project will begin with MOC Administrators (Rob) who need to produce
 usage reports for the partner institutions. The project is anticipated to expand
-to other users. However, those users' personas are not yet well defined. 
+to other users, however, those users' personas are not yet well defined.
 
 
 ## Scope
 
 At the highest level, the system must be able to tally the total usage for every
-Partner User at the MOC. Further, the system must be able to aggregate that data
-across two major segments: 
+Virtual Machine at the MOC. Further, the system must be able to aggregate that
+data across three major segments:
  1. Project
  2. Institution
- 
-Conceptually, the two segements can be considered orthagonal with multiple 
-Institutions participating in/funding any given project. In such a case, a 
-notion of relative buy-in/investment would need to be defined for all 
-participating Instiutions (for a given Project). The well-scoped-ness of such a 
-condition is under consideration. Further, a complete billing system with 
-graphical front-end are considered beyond the scope of this project. 
+ 3. User
+
+Each pair of segments has the following cardinality:
+ - Project-Institution: Many-to-Many
+ - Project-User: Many-to-Many
+ - User-Institution: Many-to-One
+
+A notion of relative buy-in/investment will need to be defined for all projects
+with multiple funding Institutions.
+
+The system will automatically gather data from MOC Service Provider Systems and
+begin a processing pipeline. The pipeline will build an intermediary store of
+usage data from which reports and dump files can be generated. The generated
+usage data will be persistent. Length of persistency shall be defined at
+run-time by the MOC Administrator.
+
+The system will be able to produce reports accurate to one hour. The system may
+be extend to provide finer reporting capabilities. Reports generated must be
+consistent with the raw data collected from OpenStack. The system must run
+automated consistency verification routines against all data source streams.
+
+The system must support the following front-ends for data export:
+ - CSV File, a Dump of all usage data over a given time period
+ - PDF File, a Human-Readable Report
+
+A complete billing system with graphical front-end is considered beyond the
+scope of this project.
 
 
 ## Features
-#### Todo
+
+1. MOC Usage data collector
+    - Will poll MOC services to get machine usage data
+2. Data pipeline
+    - Will process raw MOC Service Provider data into the intermediary usage
+      data format
+    - Pipeline will produce data consistent with MOC logs
+    - Multiple Pipeline Architectures must be supported
+3. A database that houses processed usage data
+4. "Front-end" server for accessing processed data
+    - Provides Interface point for user utilities for generating reports
+5. CSV Database dump utility
+    - Will write all entries in the usage database over a specified time period
+      to downloadable files
+    - Allows checking of consistency with MOC Logs
+6. Basic Monthly Aggregate Usage Report Generator
+    - Will extend current work that produces elementary reports
 
 
 ## Solution Concept
@@ -56,13 +90,13 @@ The system can conceptually be understood has consisting of three major layers:
  2. The Data Collection Engine
  3. "Front-End" Consumers
 
-Layer 1 consists of the "real services" on the MOC that are responsible for 
-providing the MOC's Virtualization Services. OpenStack is the keystone element 
-here. Layer 2 will be impelmented during the course of this project. It will be
-responsible for using the interfaces provided by the services in Layer 1 to 
-aggregate data and providing an API to the Layer 3 services. Proof-of-Concept 
-demonstration applications at Layer 3 will be developed to showcase the ability 
-of the Layer 2 aggregation system. 
+Layer 1 consists of the "real services" on the MOC that are responsible for
+providing the MOC's Virtualization Services. OpenStack is the keystone element
+here. Layer 2 will be implemented during the course of this project. It will be
+responsible for using the interfaces provided by the services in Layer 1 to
+aggregate data and providing an API to the Layer 3 services. Proof-of-Concept
+demonstration applications at Layer 3 will be developed to showcase the ability
+of the Layer 2 aggregation system.
 
 
 #### Design Implications and Discussion
@@ -70,15 +104,16 @@ of the Layer 2 aggregation system.
 
 
 ## Acceptance criteria
+ 1. The system must be able to both generate a human readable report and dump a
+    CSV database of usage data
 ##### Todo
 
-
 ## Open Questions
- - What is the minimum level of accuracy 
-    - What minimum level of accuracy is needed internally to provide this, if 
+ - What is the minimum necessary level of usage data granularity
+    - What minimum level of granularity is needed internally to provide this, if
       different?
- - $ Project \elementof \over{?} Institution $
-    - Or, can $ Project \intesect i \neq \emptyset \for \exists \not \unique i \isa Institution $
+ - How often will the pipeline need to run?
+ - Guidelines/Expectations for outputted report?
 
 
 ## General comments
