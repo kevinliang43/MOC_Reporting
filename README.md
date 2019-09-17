@@ -31,17 +31,24 @@ to other users, however, those users' personas are not yet well defined.
 At the highest level, the system must be able to tally the total usage for every
 Virtual Machine at the MOC. Further, the system must be able to aggregate that
 data across three major segments:
- 1. Project
- 2. Institution
- 3. User
+ 1. Projects
+ 2. Institutions
+ 3. Users
 
 Each pair of segments has the following cardinality:
  - Project-Institution: Many-to-Many
  - Project-User: Many-to-Many
  - User-Institution: Many-to-One
 
-A notion of relative buy-in/investment will need to be defined for all projects
-with multiple funding Institutions.
+
+"Projects" refers to collections of MOC Service instances. Each Project defines 
+an area of control and will have one User that is responsbile for that Project. 
+Further, Projects are a recursive data type: sub-projects can be defined on a 
+given project, and reports generated for that projct must include appropriately
+labeled usage data for all sub-projects. The project tree will be rooted in a 
+node that represents the whole of the MOC. Lastly, a notion of relative buy-in /
+investment will need to be defined for all projects with multiple funding 
+Institutions.
 
 The system will automatically gather data from MOC Service Provider Systems and
 begin a processing pipeline. The pipeline will build an intermediary store of
@@ -59,7 +66,8 @@ The system must support the following front-ends for data export:
  - PDF File, a Human-Readable Report
 
 A complete billing system with graphical front-end is considered beyond the
-scope of this project.
+scope of this project, however defining a model for pricing will be attempted if
+time allows. 
 
 
 ## Features
