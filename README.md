@@ -1,12 +1,22 @@
 
-MOC Reporting
+Massachusetts Open Cloud (MOC) Reporting
 =============
 
 ## Goal
 
-The ultimate goal of the MOC Reporting project is to generate actionable
-business objects in the form of summary usage reports. The system must be able
-to generate these reports across the axes of Institution, Project, and User.
+The ultimate goal of the MOC Reporting project (MOC Reporting System)
+is to generate actionable business objects in the form of summary usage reports.
+These reports will summarize just OpenStack usage for now. The system must be able to generate these reports across the axes of Institution, Project, and User.
+Furthermore, the system must also be able to generate intermediate CSV artifacts
+that act as a snapshot of the database holding all usage information being collected
+from OpenStack. CSV dumps will be created for all object and relationship tables
+for a user-specified time period.
+
+
+## Stretch Goals
+Although the current goal of the project revolves around generating reports for just OpenStack, if time permits, we will extend functionality of the MOC Reporting System
+so that the system will be able to collect data from and generate CSV files and reports
+for Zabbix, Openshift, and Ceph.
 
 
 ## Users and Personas
@@ -41,17 +51,17 @@ Each pair of segments has the following cardinality:
  - User-Institution: Many-to-One
 
 
-"Projects" refers to collections of MOC Service instances. Each Project defines 
-an area of control and will have one User that is responsbile for that Project. 
-Further, Projects are a recursive data type: sub-projects can be defined on a 
-given project, and reports generated for that projct must include appropriately
-labeled usage data for all sub-projects. The project tree will be rooted in a 
+"Projects" refers to collections of MOC Service instances. Each Project defines
+an area of control and will have one User that is responsible for that Project.
+Further, Projects are a recursive data type: sub-projects can be defined on a
+given project, and reports generated for that project must include appropriately
+labeled usage data for all sub-projects. The project tree will be rooted in a
 node that represents the whole of the MOC. Lastly, a notion of relative buy-in /
-investment will need to be defined for all projects with multiple funding 
+investment will need to be defined for all projects with multiple funding
 Institutions.
 
-The system will automatically gather data from MOC Service Provider Systems and
-begin a processing pipeline. The pipeline will build an intermediary store of
+The system created will automatically gather data from OpenStack
+and build an intermediary store of
 usage data from which reports and dump files can be generated. The generated
 usage data will be persistent. Length of persistency shall be defined at
 run-time by the MOC Administrator.
@@ -67,19 +77,47 @@ The system must support the following front-ends for data export:
 
 A complete billing system with graphical front-end is considered beyond the
 scope of this project, however defining a model for pricing will be attempted if
-time allows. 
+time allows.
+
+If time permits and the initial Scope of the project has been satisfied and completed,
+We can extend this project to collect data from and produce reports for
+Openshift, Ceph, and Zabbix services, again across the three major segments.
 
 
 ## Features
 
-1. MOC Usage data collector
-    - Will poll MOC services to get machine usage data
-2. Data pipeline
-    - Will process raw MOC Service Provider data into the intermediary usage
-      data format
+1. OpenStack Usage data collector
+    - Data that will be collected include:
+     - [User](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-user)
+     - [Flavors](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-flavor)
+     - [Router](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-router)
+     - [Neutron Information](https://docs.openstack.org/mitaka/install-guide-obs/common/get_started_networking.html)
+       - [Networks](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-network)
+       - [Subnets](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-subnet)
+       - [Floating IPs](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-floating-ip-address)
+     - [Instances](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-instance)
+     - [Volumes from Cinder](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-volume)
+     - [Panko Data](https://docs.openstack.org/panko/latest/webapi/index.html)
+     [Insert Entity Relationship Diagram Here When Ready]
+    - Data collected will be stored in a PostgreSQL database (TODO: Add ER Diagram when available)
+    - Data collection scripts will be run every 15 minutes
+    - Python 3 or Perl Scripts
+
+2. database
+    - Contains raw data from OpenStack
+    - Contains tables for Institutions, Users, and Projects
+    - Database is auditable (READ actions only performed)
+    - PostgreSQL RDBMS
+
+3. Data pipeline
+    - Extracts raw OpenStack usage data from PostgreSQL database.
+    - Processes raw data into CSV files
+      - Each CSV file containing all entries from a user-specified time period.
+      - Each CSV file is mapped to a single table within the database.
     - Pipeline will produce data consistent with MOC logs
-    - Multiple Pipeline Architectures must be supported
-3. A database that houses processed usage data
+    - Pipeline will be automated to run every day.
+    - CSV Files will be stored on MOC servers and will be persistent
+    - Can only perform READ actions on the database containing raw OpenStack data.
 4. "Front-end" server for accessing processed data
     - Provides Interface point for user utilities for generating reports
 5. CSV Database dump utility
@@ -88,6 +126,10 @@ time allows.
     - Allows checking of consistency with MOC Logs
 6. Basic Monthly Aggregate Usage Report Generator
     - Will extend current work that produces elementary reports
+7. Hardware/VM Specs:
+  - OpenStack x86 VMs
+  - TBD
+
 
 
 ## Solution Concept
@@ -112,8 +154,12 @@ of the Layer 2 aggregation system.
 
 
 ## Acceptance criteria
- 1. The system must be able to both generate a human readable report and dump a
-    CSV database of usage data
+ 1. The system must be able to both generate a human readable report
+    summarizing OpenStack usage and dump across Institutions, Projects, and Users.
+ 2. The system creates intermediate CSV files that represent the state of the
+    database tables from a current period of time and be stored on MOC servers.
+ 3. Data collection, storing into databases, and saved as CSV files will be automated.
+
 ##### Todo
 
 ## Open Questions
@@ -122,6 +168,9 @@ of the Layer 2 aggregation system.
       different?
  - How often will the pipeline need to run?
  - Guidelines/Expectations for outputted report?
+ - What are the hardware specs of the machines to be running this system?
+ - Containerization: What software is necessary in containers to run scripts?
+ - Definition of Production level
 
 
 ## General comments
