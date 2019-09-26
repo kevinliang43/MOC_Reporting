@@ -140,7 +140,7 @@ The system can conceptually be understood has consisting of three major layers:
  2. The Data Collection Engine
  3. "Front-End" Consumers
 
-<img src="/images/architechture_diagram.png" width="750" height="500">
+![Solution Architecture Diagram](/images/architecture_diagram.png)
 
 Layer 1 consists of the "real services" on the MOC that are responsible for
 providing the MOC's Virtualization Services. OpenStack is the keystone element
