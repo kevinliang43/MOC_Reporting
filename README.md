@@ -162,6 +162,7 @@ of the Layer 2 aggregation system.
 
 ##### Todo
 
+
 ## Release Planning
 #### Release #1: (Sept 26)
  - Analysis of requirements and setting up the PostgreSQL database on the test environment along with other dependencies.
@@ -180,24 +181,24 @@ of the Layer 2 aggregation system.
 
 #### Release #3: (Oct 24)
  - Implement tool for generating reports for Openshift.
-    - Extend data collection capabilities
-    - Extend data model to incorporate Openshift
-    - Extend report generation tool to generate reports for Openshift
- ...
+    - Extend data collection capabilities.
+    - Extend data model to incorporate Openshift.
+    - Extend report generation tool to generate reports for Openshift.
+##### ...
 
 #### Release #4: (Nov 7)
- - Implement tool for generating reports for Zabbix
-    - Extend data collection capabilities for Zabbix
-    - Extend data model to incorporate Zabbix
-    - Extend report generation tool to generate reports for Zabbix
- ...
+ - Implement tool for generating reports for Zabbix.
+    - Extend data collection capabilities for Zabbix.
+    - Extend data model to incorporate Zabbix.
+    - Extend report generation tool to generate reports for Zabbix.
+##### ...
 
 #### Release #5: (Nov 21)
- - Implement tool for generating reports for Ceph
-    - Extend data collection capabilities for Ceph
-    - Extend data model to incorporate Ceph
-    - Extend report generation tool to generate reports for Ceph
- ...
+ - Implement tool for generating reports for Ceph.
+    - Extend data collection capabilities for Ceph.
+    - Extend data model to incorporate Ceph.
+    - Extend report generation tool to generate reports for Ceph.
+##### ...
 
 #### Release #6: (Dec 5)
  - Addition or modification in the tool according to the requirement.
