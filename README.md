@@ -151,10 +151,6 @@ demonstration applications at Layer 3 will be developed to showcase the ability
 of the Layer 2 aggregation system.
 
 
-#### Design Implications and Discussion
-##### Todo
-
-
 ## Acceptance criteria
  1. The system must be able to both generate a human readable report
     summarizing OpenStack usage and dump across Institutions, Projects, and Users.
@@ -162,7 +158,6 @@ of the Layer 2 aggregation system.
     database tables from a current period of time and be stored on MOC servers.
  3. Data collection, storing into databases, and saved as CSV files will be automated.
 
-##### Todo
 
 ## Open Questions
  - What is the minimum necessary level of usage data granularity
@@ -173,7 +168,3 @@ of the Layer 2 aggregation system.
  - What are the hardware specs of the machines to be running this system?
  - Containerization: What software is necessary in containers to run scripts?
  - Definition of Production level
-
-
-## General comments
-#### Todo
