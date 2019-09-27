@@ -5,7 +5,7 @@ Massachusetts Open Cloud (MOC) Reporting
 ## Goal
 
 The ultimate goal of the MOC Reporting project (MOC Reporting System)
-is to generate actionable business objects in the form of summary usage reports.
+is to generate actionable business objects in the form of human readable summary usage reports.
 These reports will summarize just OpenStack usage for now. The system must be able to generate these reports across the axes of Institution, Project, and User.
 Furthermore, the system must also be able to generate intermediate CSV artifacts
 that act as a snapshot of the database holding all usage information being collected
@@ -14,9 +14,12 @@ for a user-specified time period.
 
 
 ## Stretch Goals
-Although the current goal of the project revolves around generating reports for just OpenStack, if time permits, we will extend functionality of the MOC Reporting System
+Although the current goal of the project revolves around generating reports and CSV dumps for just OpenStack, if time permits, there are also stretch goals that can be implemented, and are as follows:
+ 1. extend functionality of the MOC Reporting System
 so that the system will be able to collect data from and generate CSV files and reports
 for Zabbix, Openshift, and Ceph.
+ 2. Develop, deploy and automate the process of consistency and quality checks of the data collected.
+ 3. Develop pricing model for billing reports for paying customers.
 
 
 ## Users and Personas
@@ -39,7 +42,7 @@ to other users, however, those users' personas are not yet well defined.
 ## Scope
 
 At the highest level, the system must be able to tally the total usage for every
-Virtual Machine at the MOC. Further, the system must be able to aggregate that
+Virtual Machine at the MOC and produce Openstack usage reports that can be sent to customers for viewing (and possibly billing), as well as produce intermediary data store in the form of CSV dumps that serve as "raw" data that can be provided to customers (if customers wanted to generate their own reports). Further, the system must be able to aggregate that
 data across three major segments:
  1. Projects
  2. Institutions
@@ -61,8 +64,7 @@ investment will need to be defined for all projects with multiple funding
 Institutions.
 
 The system created will automatically gather data from OpenStack
-and build an intermediary store of
-usage data from which reports and dump files can be generated. The generated
+and build an intermediary store of usage data from which reports and dump files can be generated. The generated
 usage data will be persistent. Length of persistency shall be defined at
 run-time by the MOC Administrator.
 
@@ -146,19 +148,42 @@ The system can conceptually be understood has consisting of three major layers:
 Layer 1 consists of the "real services" on the MOC that are responsible for
 providing the MOC's Virtualization Services. OpenStack is the keystone element
 here. Layer 2 will be implemented during the course of this project. It will be
-responsible for using the interfaces provided by the services in Layer 1 to
-aggregate data and providing an API to the Layer 3 services. Proof-of-Concept
+responsible for using the interfaces provided by the services in Layer 1 to collect,
+aggregate and store data and provide an API to the Layer 3 services. Layer 2 will also provide functionality to dump data store into an intermediary raw format in the form of CSV dumps. Proof-of-Concept
 demonstration applications at Layer 3 will be developed to showcase the ability
 of the Layer 2 aggregation system.
 
+#### Design Implications and Discussion
 
-## Acceptance criteria
+Below is a description of system components that are being used to implement the features:
+
+ - PostgreSQL DBMS: Database
+ - Perl : Data Collection 
+ - Python : Building data dump utilities
+     - Psycopg2 library: PostgreSQL connection management
+ - R : Business Analytics and Report Generation
+ - Openstack: Open source VM federation management
+ - Openshift: Open source containerization software
+ 
+ The finished system will be deployed on MOC VMs.
+
+
+## Minimum Acceptance Criteria
  1. The system must be able to both generate a human readable report
     summarizing OpenStack usage and dump across Institutions, Projects, and Users.
  2. The system creates intermediate CSV files that represent the state of the
     database tables from a current period of time and be stored on MOC servers.
- 3. Data collection, storing into databases, and saved as CSV files will be automated.
-
+ 3. Openstack data collection, storing into databases, and saving as CSV files will be automated.
+ 
+## Reach Acceptance Criteria 
+ 1. The system must be able to both generate a human readable report
+    summarizing Openshift usage and dump across Institutions, Projects, and Users.
+ 2. The system must be able to both generate a human readable report
+    summarizing Ceph usage and dump across Institutions, Projects, and Users.
+ 3. The system must be able to both generate a human readable report
+    summarizing Zabbix usage and dump across Institutions, Projects, and Users.
+ 4. The system will have automated data quality and consistency checks.
+ 5. Openshift, Ceph and Zabbix usage data collection, storing into databases, and saving as CSV files will be automated.
 
 
 ## Release Planning
@@ -212,3 +237,6 @@ of the Layer 2 aggregation system.
  - What are the hardware specs of the machines to be running this system?
  - Containerization: What software is necessary in containers to run scripts?
  - Definition of Production level
+ 
+ ## Demo Presentations
+ - [Sprint 1](https://docs.google.com/presentation/d/12604SFjpRfqNQNBQ3ePZvH79kq0-ihbKXSHs0ffKcXQ/edit#slide=id.g63c4638e2b_0_36)
