@@ -42,7 +42,7 @@ to other users, however, those users' personas are not yet well defined.
 ## Scope
 
 At the highest level, the system must be able to tally the total usage for every
-Virtual Machine at the MOC and produce Openstack usage reports that can be sent to customers for viewing (and possibly billing), as well as produce intermediary data store in the form of CSV dumps that serve as "raw" data that can be provided to customers (if customers wanted to generate their own reports). Further, the system must be able to aggregate that
+Virtual Machine at the MOC and produce Openstack usage reports that can be sent to customers for viewing, as well as produce intermediary data store in the form of CSV dumps that serve as "raw" data that can be provided to customers (if customers wanted to generate their own reports). Further, the system must be able to aggregate that
 data across three major segments:
  1. Projects
  2. Institutions
