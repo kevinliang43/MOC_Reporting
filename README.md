@@ -98,16 +98,17 @@ Openshift, Ceph, and Zabbix services, again across the three major segments.
      - [Instances](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-instance)
      - [Volumes from Cinder](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-volume)
      - [Panko Data](https://docs.openstack.org/panko/latest/webapi/index.html)
-     [Insert Entity Relationship Diagram Here When Ready]
-    - Data collected will be stored in a PostgreSQL database (TODO: Add ER Diagram when available)
+    - Data collected will be stored in a PostgreSQL database
     - Data collection scripts will be run every 15 minutes
     - Python 3 or Perl Scripts
 
 2. database
     - Contains raw data from OpenStack
-    - Contains tables for Institutions, Users, and Projects
+    - Contains tables for Institutions, Users, and Projects.
     - Database is auditable (READ actions only performed)
     - PostgreSQL RDBMS
+    - The ER diagram below shows the data model structure.
+    ![ER Diagram](/images/ER_diagram.png)
 
 3. Data pipeline
     - Extracts raw OpenStack usage data from PostgreSQL database.
