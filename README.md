@@ -160,6 +160,49 @@ of the Layer 2 aggregation system.
  3. Data collection, storing into databases, and saved as CSV files will be automated.
 
 
+
+## Release Planning
+#### Release #1: (Sept 26)
+ - Analysis of requirements and setting up the PostgreSQL database on the test environment along with other dependencies.
+ - Second draft of Project Proposal after further investigation. Constructed entity relationship diagrams, cardinality relationship diagrams, and solution architecture diagrams.
+ - Create Script to extract data from database and convert it into CSV files so that it could be further processed and customized reports could be generated from it.
+
+#### Release #2: (Oct 10)
+ - Implement data validation for csv dump.
+ - Create Report generation tool which will convert the csv data into customized report PDFs.
+    - Generate usage reports for Openstack
+ - Create setup script that would install all the dependencies, schedule the csv generating script and setup the report generation tool in Linux machine.
+ - Automate the system to run periodically
+    - Hook the script generating csv script to the report generation tool that would allow the sequential execution of the two.
+ - Add functionality to csv dump script to be able to pull data from database in prod environment
+    - Needs to be configurable at run time.
+
+#### Release #3: (Oct 24)
+ - Implement tool for generating reports for Openshift.
+    - Extend data collection capabilities.
+    - Extend data model to incorporate Openshift.
+    - Extend report generation tool to generate reports for Openshift.
+##### ...
+
+#### Release #4: (Nov 7)
+ - Implement tool for generating reports for Zabbix.
+    - Extend data collection capabilities for Zabbix.
+    - Extend data model to incorporate Zabbix.
+    - Extend report generation tool to generate reports for Zabbix.
+##### ...
+
+#### Release #5: (Nov 21)
+ - Implement tool for generating reports for Ceph.
+    - Extend data collection capabilities for Ceph.
+    - Extend data model to incorporate Ceph.
+    - Extend report generation tool to generate reports for Ceph.
+##### ...
+
+#### Release #6: (Dec 5)
+ - Addition or modification in the tool according to the requirement.
+ - Generate reports from the aggregated data gathered from openstack, zabbix, ceph and openshift.
+
+
 ## Open Questions
  - What is the minimum necessary level of usage data granularity
     - What minimum level of granularity is needed internally to provide this, if
