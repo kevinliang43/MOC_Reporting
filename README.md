@@ -15,7 +15,7 @@ for a user-specified time period.
 
 ## Stretch Goals
 Although the current goal of the project revolves around generating reports and CSV dumps for just OpenStack, if time permits, there are also stretch goals that can be implemented, and are as follows:
- 1. extend functionality of the MOC Reporting System
+ 1. Extend functionality of the MOC Reporting System
 so that the system will be able to collect data from and generate CSV files and reports
 for Zabbix, Openshift, and Ceph.
  2. Develop, deploy and automate the process of consistency and quality checks of the data collected.
@@ -104,7 +104,7 @@ Openshift, Ceph, and Zabbix services, again across the three major segments.
     - Data collection scripts will be run every 15 minutes
     - Python 3 or Perl Scripts
 
-2. database
+2. Database
     - Contains raw data from OpenStack
     - Contains tables for Institutions, Users, and Projects.
     - Database is auditable (READ actions only performed)
@@ -145,14 +145,6 @@ The system can conceptually be understood has consisting of three major layers:
 
 ![Solution Architecture Diagram](/images/architecture_diagram.png)
 
-Layer 1 consists of the "real services" on the MOC that are responsible for
-providing the MOC's Virtualization Services. OpenStack is the keystone element
-here. Layer 2 will be implemented during the course of this project. It will be
-responsible for using the interfaces provided by the services in Layer 1 to collect,
-aggregate and store data and provide an API to the Layer 3 services. Layer 2 will also provide functionality to dump data store into an intermediary raw format in the form of CSV dumps. Proof-of-Concept
-demonstration applications at Layer 3 will be developed to showcase the ability
-of the Layer 2 aggregation system.
-
 #### Design Implications and Discussion
 
 Below is a description of system components that are being used to implement the features:
@@ -165,7 +157,13 @@ Below is a description of system components that are being used to implement the
  - Openstack: Open source VM federation management
  - Openshift: Open source containerization software
  
- The finished system will be deployed on MOC VMs.
+Layer 1 consists of the "real services" on the MOC that are responsible for
+providing the MOC's Virtualization Services. OpenStack is the keystone element
+here. Layer 2 will be implemented during the course of this project. It will be
+responsible for using the interfaces provided by the services in Layer 1 to collect,
+aggregate and store data and provide an API to the Layer 3 services. Layer 2 will also provide functionality to dump data store into an intermediary raw format in the form of CSV dumps. Proof-of-Concept
+demonstration applications at Layer 3 will be developed to showcase the ability
+of the Layer 2 aggregation system. The finished system will be deployed on MOC VMs. 
 
 
 ## Minimum Acceptance Criteria
