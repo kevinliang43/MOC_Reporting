@@ -2,7 +2,12 @@ import psycopg2
 import os
 import errno
 import logging
+<<<<<<< HEAD
 import json
+=======
+import argparse
+import configparser
+>>>>>>> add args for filtering
 from datetime import date
 
 def initialize_logging():
@@ -108,7 +113,7 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
         else:
             query = table_query
     #file_path = "{}{}/{}.csv".format(base_path, table_name, date.today().strftime("%Y_%m_%d"))
-    file_path = "{}/{}.csv".format(base_path, start_date + "_" + end_date + "_" + table_name)
+    file_path = "{}/{}/{}.csv".format(base_path, date.today().strftime("%Y_%m_%d"), start_date + "_" + end_date + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
     with open(file_path, "w+") as file_to_write:  # TODO: Should we write if the file already exists?
@@ -120,8 +125,8 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
 def get_tables_and_query_mapping():
     # Each element is of the format (table_name, sql_query, params_required, temp_table_created)
     tables_and_query = []
-    tables_and_query.append(('item_ts', "select * from item_ts where start_ts >= '{}' and end_ts <= '{}'", True, False))
-    tables_and_query.append(('item', 'create temp table item_temp as (select * from item i where exists (select 1 from item_ts it where it.domain_id = i.domain_id and it.project_id = i.project_id and it.item_id = i.item_id and it.item_type_id = i.item_type_id and it.start_ts >= %s and it.end_ts <= %s))', True, True))
+    tables_and_query.append(('item_ts', "select * from item_ts where start_ts between '{}' and '{}'", True, False))
+    tables_and_query.append(('item', 'create temp table item_temp as (select * from item i where exists (select 1 from item_ts it where it.domain_id = i.domain_id and it.project_id = i.project_id and it.item_id = i.item_id and it.item_type_id = i.item_type_id and it.start_ts between %s and %s))', True, True))
     tables_and_query.append(('item_type', 'select * from item_type where item_type_id in (select item_type_id from item_temp)', False, False ))
     tables_and_query.append(('catalog_item', 'select * from catalog_item where item_type_id in (select item_type_id from item_temp)', False, False))
     tables_and_query.append(('project', 'create temp table project_temp as (select distinct p.* from project p inner join item_temp i on p.domain_id = i.domain_id and p.project_id = i.project_id)', False, True))
@@ -134,6 +139,22 @@ def get_tables_and_query_mapping():
     return tables_and_query
 
 if __name__ == '__main__':
+<<<<<<< HEAD
+=======
+
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_name = config['DatabaseSection']['database.dbname']
+    user = config['DatabaseSection']['database.user']
+
+    # check for args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--active_timestamp", nargs='+', help="the timestamps where a VM was active", type=str)
+    args = parser.parse_args()
+    start_date = args.active_timestamp[0]
+    end_date = args.active_timestamp[1]
+
+>>>>>>> add args for filtering
     # Initialize Logging
     initialize_logging()
     # Get DB Configs
@@ -142,8 +163,6 @@ if __name__ == '__main__':
     conn = get_connection(config['host'], config['dbname'], config['user'], config['pass'])
     cur = conn.cursor()
     # Dump CSV files
-    start_date = '2019-01-30'
-    end_date = '2019-01-31'
     base_path = "{}/moc_reporting_csv_dump/".format(os.getcwd())
     for table_query_info in get_tables_and_query_mapping():
         query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
