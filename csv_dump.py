@@ -2,13 +2,10 @@ import psycopg2
 import os
 import errno
 import logging
-<<<<<<< HEAD
 import json
-=======
 import argparse
 import configparser
->>>>>>> add args for filtering
-from datetime import date
+from datetime import datetime
 
 def initialize_logging():
     '''Initializes Logging'''
@@ -113,7 +110,7 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
         else:
             query = table_query
     #file_path = "{}{}/{}.csv".format(base_path, table_name, date.today().strftime("%Y_%m_%d"))
-    file_path = "{}/{}/{}.csv".format(base_path, date.today().strftime("%Y_%m_%d"), start_date + "_" + end_date + "_" + table_name)
+    file_path = "{}/{}.csv".format(base_path, start_date + "_" + end_date + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
     with open(file_path, "w+") as file_to_write:  # TODO: Should we write if the file already exists?
@@ -139,8 +136,6 @@ def get_tables_and_query_mapping():
     return tables_and_query
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-=======
 
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -154,7 +149,6 @@ if __name__ == '__main__':
     start_date = args.active_timestamp[0]
     end_date = args.active_timestamp[1]
 
->>>>>>> add args for filtering
     # Initialize Logging
     initialize_logging()
     # Get DB Configs
@@ -163,7 +157,7 @@ if __name__ == '__main__':
     conn = get_connection(config['host'], config['dbname'], config['user'], config['pass'])
     cur = conn.cursor()
     # Dump CSV files
-    base_path = "{}/moc_reporting_csv_dump/".format(os.getcwd())
+    base_path = "{}/moc_reporting_csv_dump/{}".format(os.getcwd(), datetime.now().strftime("%m_%d_%Y_%H:%M:%S"))
     for table_query_info in get_tables_and_query_mapping():
         query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
     # Close connection
