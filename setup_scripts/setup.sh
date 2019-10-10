@@ -33,11 +33,17 @@ echo "------------------------------------"
 echo " This script will setup our dev env"
 echo "------------------------------------"
 
+# Enable EPEL Repo
+unix_command sudo yum --enablerepo=extras install epel-release
+
 # Python
-inst yum python-pip python-dev 
+inst yum python-pip python-devel gcc 
+
+# Upgrade Pip
+unix_command sudo pip install --upgrade pip
 
 # Postgres
-inst yum postgres-devel postgresql-server postgresql-contrib
+inst yum postgresql-devel postgresql-server postgresql-contrib
 
 # Other
 inst yum vim
