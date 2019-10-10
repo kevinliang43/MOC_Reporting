@@ -37,10 +37,10 @@ echo "------------------------------------"
 unix_command sudo yum --enablerepo=extras install epel-release
 
 # Python
-inst yum python-pip python-devel 
+inst yum python-pip python-devel gcc 
 
 # Upgrade Pip
-unix_command pip install --upgrade pip
+unix_command sudo pip install --upgrade pip
 
 # Postgres
 inst yum postgresql-devel postgresql-server postgresql-contrib
