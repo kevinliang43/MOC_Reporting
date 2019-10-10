@@ -40,7 +40,7 @@ unix_command sudo yum --enablerepo=extras install epel-release
 inst yum python-pip python-devel 
 
 # Postgres
-inst yum postgres-devel postgresql-server postgresql-contrib
+inst yum postgresql-devel postgresql-server postgresql-contrib
 
 # Other
 inst yum vim
