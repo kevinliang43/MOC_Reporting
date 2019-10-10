@@ -87,13 +87,15 @@ def check_directory(dir_path):
 
 def query_and_write_data(cur, table_query_info, base_path, start_date, end_date):
     '''Queries all data and headers from a given table, and writes it to a csv file.
-    Path of the file is as such: {base_path}{table_name}/{todays date}.csv
+    Path of the file is as such: {base_path}/{start_date_end_date_table_name}.csv
 
     Args:
         cur (psycopg2.cursor): Cursor to execute queries to the connected database
-        table_name (str): Name of the table to query
+        table_query_info (str): Each table query info has table name, table query, params flag and temp_table flag
         base_path (str): Base path of where the CSV file dump of the table is to be stored.
                         (Example: /example/path/to/desired/directory/)
+        start_date: start endpoint where when the VM was active
+        end_date:  end endpoint where the VM was active
     '''
     table_name, table_query, need_params, create_temp_table = table_query_info
     if create_temp_table:
@@ -109,7 +111,6 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
             query = table_query.format(start_date, end_date)
         else:
             query = table_query
-    #file_path = "{}{}/{}.csv".format(base_path, table_name, date.today().strftime("%Y_%m_%d"))
     file_path = "{}/{}.csv".format(base_path, start_date + "_" + end_date + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
@@ -120,6 +121,10 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
 
 
 def get_tables_and_query_mapping():
+    '''
+    Gets an array of queries to get the data from each table. Starts with the timestamp in item_ts table
+    :return: an array of queries for fetching data in each tables.
+    '''
     # Each element is of the format (table_name, sql_query, params_required, temp_table_created)
     tables_and_query = []
     tables_and_query.append(('item_ts', "select * from item_ts where start_ts between '{}' and '{}'", True, False))
@@ -135,8 +140,8 @@ def get_tables_and_query_mapping():
     tables_and_query.append(('address', 'select * from address where address_id in (select address_id from poc inner join project2poc_temp p on poc.poc_id = p.poc_id)', False, False))
     return tables_and_query
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('config.ini')
     db_name = config['DatabaseSection']['database.dbname']
