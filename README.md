@@ -237,4 +237,5 @@ of the Layer 2 aggregation system. The finished system will be deployed on MOC V
  - Definition of Production level
  
  ## Demo Presentations
- - [Sprint 1](https://docs.google.com/presentation/d/12604SFjpRfqNQNBQ3ePZvH79kq0-ihbKXSHs0ffKcXQ/edit#slide=id.g63c4638e2b_0_36)
+ - [Sprint 1](https://docs.google.com/presentation/d/12604SFjpRfqNQNBQ3ePZvH79kq0-ihbKXSHs0ffKcXQ/)
+ - [Sprint 2](https://docs.google.com/presentation/d/1dm3UGdc3P_4b5UifQM6C4nB_20OWXBRQcUdXFZ0owNg/)
