@@ -39,6 +39,9 @@ unix_command sudo yum --enablerepo=extras install epel-release
 # Python
 inst yum python-pip python-devel 
 
+# Upgrade Pip
+unix_command pip install --upgrade pip
+
 # Postgres
 inst yum postgresql-devel postgresql-server postgresql-contrib
 
