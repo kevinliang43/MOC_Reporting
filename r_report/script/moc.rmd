@@ -1,0 +1,52 @@
+---
+title: "MOC Usage Report"
+output:
+  pdf_document:
+    includes:
+      in_header: header.tex
+  df_print: kable
+  html_document:
+    df_print: paged
+mainfont: Roboto Light
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Institution Details:
+__Name:__ Northeastern University
+\newline __Address:__ 360 Huntington Ave, Boston, MA 02115
+\newline __Phone:__ (617) 373-2000
+\newline __email:__ mocuser@northeastern.neu.edu
+
+`r project = "robbaron@bu.edu"`
+## Project: `r project`
+
+
+
+```{r, echo=FALSE, warning=FALSE, max.print=1}
+ library(pacman)
+ pacman::p_load(pacman, dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret, e1071,lubridate,knitr, kableExtra,hflights)
+ project <- read.csv ("./csv/project/2019_10_02.csv")
+ item_type <- read.csv ("./csv/item_type/2019_10_02.csv")
+ item <- read.csv ("./csv/item/2019_10_02.csv")
+ item_ts <- read.csv("./csv/item_ts/2019_10_02.csv")
+ result <- right_join(item_type,item, by = "item_type_id")
+ result2 <- right_join(project,result, by = "project_id")
+ item_ts_minmax <- select(item_ts,item_id,start_ts) %>% group_by(item_id) %>% summarise(max_ts = max(as.POSIXct(start_ts)), min_ts = min(as.POSIXct(start_ts)))
+ item_usage <- select(item_ts_minmax,item_id,max_ts,min_ts) %>% group_by(item_id) %>% summarise( usage = difftime(max_ts,min_ts,units = "hours"))
+ final_table <- select(right_join(item_usage,result2, by = "item_id"), project_name, item_definition, usage)
+# summary(final_table)
+#final_table <- read.csv ("./final_table.csv")
+
+
+kable(final_table %>% filter(project_name == project) %>% select(item_definition, usage) %>% group_by(item_definition) %>% summarise(count = n(), usage_hours = sum(usage)), caption="Project Usage Summary", format = "latex", booktabs = T,longtable = T) %>% row_spec(0,bold=TRUE)%>% kable_styling( full_width=TRUE, font_size=13, latex_options =c("repeat_header"))
+
+kable(final_table %>% filter(project_name == project) %>% mutate(Usage_hours = round(usage, 2)) %>% select(item_definition, Usage_hours) , caption="Project Detailed Usage", format = "latex", booktabs = T,longtable = T) %>% row_spec(0,bold=TRUE) %>% kable_styling( full_width=TRUE, font_size=13, latex_options =c("repeat_header"))
+```
+
+##### 
+
