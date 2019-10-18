@@ -3,7 +3,7 @@ import os
 import errno
 import logging
 from datetime import date
-
+from configparser import ConfigParser
 
 def initialize_logging():
     '''Initializes Logging'''
@@ -11,19 +11,45 @@ def initialize_logging():
     logging.basicConfig(format=log_format, level=logging.INFO)
     logging.info("Initialized Logging.")
 
-def get_connection(db_name, user):
+def get_config(filepath='database.ini', section='postgresql'):
+    """ Reads config file and retrieves configs from a given section
+    
+    Args:
+        filepath (str): Filepath of the config file.
+        section (str): Secton of the config file to read
+
+    Return:
+        kwargs (dict): dictionary of config key:value pairs.
+    """
+    # Initialize the parser 
+    parser = ConfigParser()
+    parser.read(filepath)
+
+    config = {}
+    if parser.has_section(section):
+        params = parser.items(section)
+        for param in params:
+            config[param[0]] = param[1]
+    else:
+        raise Exception('Please check your {} config file.'.format(filepath))
+    return config
+
+
+def get_connection(host, dbname, user, password):
     ''' Attempts to establish a connection to a given Database
 
     Args:
-        db_name (str): Name of the Database
+        host(str): Host to connect to
+        dbname (str): Name of the Database
         user (str): Name of the User
-    
+        password (str): Password
     Returns:
         conn: Connection object to the given database.
         
     '''
     try:
-        conn = psycopg2.connect(dbname=db_name, user=user)
+        logging.info("Connecting to {} at {} as {}".format(dbname, host, user))
+        conn = psycopg2.connect(host=host, dbname=dbname, user=user, password=password)
         logging.info("Connection to Database established.")
         return conn
     except Exception as e:
@@ -84,12 +110,12 @@ def query_and_write_data(cur, table_name, base_path):
     
 
 if __name__ == '__main__':
-    db_name = 'postgres'
-    user = 'postgres'
     # Initialize Logging
     initialize_logging()
+    # Get DB Configs
+    config = get_config() 
     # Establish Connection to Database
-    conn = get_connection()
+    conn = get_connection(**config)
     cur = conn.cursor()
     # Dump CSV files
     base_path = "{}/moc_reporting_csv_dump/".format(os.getcwd())
