@@ -2,8 +2,8 @@ import psycopg2
 import os
 import errno
 import logging
+import json
 from datetime import date
-from configparser import ConfigParser
 
 def initialize_logging():
     '''Initializes Logging'''
@@ -11,7 +11,7 @@ def initialize_logging():
     logging.basicConfig(format=log_format, level=logging.INFO)
     logging.info("Initialized Logging.")
 
-def get_config(filepath='database.ini', section='postgresql'):
+def get_config(filepath='config.json', section='database'):
     """ Reads config file and retrieves configs from a given section
     
     Args:
@@ -21,19 +21,12 @@ def get_config(filepath='database.ini', section='postgresql'):
     Return:
         kwargs (dict): dictionary of config key:value pairs.
     """
-    # Initialize the parser 
-    parser = ConfigParser()
-    parser.read(filepath)
-
-    config = {}
-    if parser.has_section(section):
-        params = parser.items(section)
-        for param in params:
-            config[param[0]] = param[1]
-    else:
-        raise Exception('Please check your {} config file.'.format(filepath))
-    return config
-
+    with open(filepath) as json_config:
+        config = json.load(json_config)
+    try:
+        return config[section]
+    except:
+        raise Exception('Please check the formatting of your {} config file'.format(filepath))
 
 def get_connection(host, dbname, user, password):
     ''' Attempts to establish a connection to a given Database
@@ -115,7 +108,7 @@ if __name__ == '__main__':
     # Get DB Configs
     config = get_config() 
     # Establish Connection to Database
-    conn = get_connection(**config)
+    conn = get_connection(config['host'], config['dbname'], config['user'], config['pass'])
     cur = conn.cursor()
     # Dump CSV files
     base_path = "{}/moc_reporting_csv_dump/".format(os.getcwd())

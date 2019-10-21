@@ -49,6 +49,6 @@ inst yum postgresql-devel postgresql-server postgresql-contrib
 inst yum vim
 
 # Pip Install
-inst pip psycopg2 configparser
+inst pip psycopg2
 
 
