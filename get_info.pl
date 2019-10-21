@@ -27,8 +27,7 @@ sub get_conn
     my $db_name=shift;
     my $user=shift;
     my $pass=shift;
-
-    print "-->> $db_name, $user, $pass \n";
+    
     my $conn = DBI->connect("dbi:Pg:dbname=".$db_name,$user,$pass);
     return $conn;
     }
