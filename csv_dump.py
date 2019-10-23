@@ -128,10 +128,13 @@ if __name__ == '__main__':
 
     # check for args
     parser = argparse.ArgumentParser()
-    parser.add_argument("--active_timestamp", nargs='+', help="the timestamps where a VM was active", type=str)
+    parser.add_argument("--start_timestamp", help="the start timestamp where a VM was active",
+                        required=True)
+    parser.add_argument("--end_timestamp", help="the end timestamp till when a VM was active",
+                        required=True)
     args = parser.parse_args()
-    start_date = args.active_timestamp[0]
-    end_date = args.active_timestamp[1]
+    start_date = args.start_timestamp
+    end_date = args.end_timestamp
 
     # Initialize Logging
     initialize_logging()
