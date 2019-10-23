@@ -125,10 +125,6 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
 
 
 if __name__ == '__main__':
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    db_name = config['DatabaseSection']['database.dbname']
-    user = config['DatabaseSection']['database.user']
 
     # check for args
     parser = argparse.ArgumentParser()
