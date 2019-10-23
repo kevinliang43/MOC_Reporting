@@ -6,6 +6,7 @@ import json
 import argparse
 import configparser
 from datetime import datetime
+from query_info import QueryInfo
 
 def initialize_logging():
     '''Initializes Logging'''
@@ -97,7 +98,10 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
         start_date: start endpoint where when the VM was active
         end_date:  end endpoint where the VM was active
     '''
-    table_name, table_query, need_params, create_temp_table = table_query_info
+    table_name = table_query_info.table_name
+    table_query = table_query_info.sql_query
+    need_params = table_query_info.params_required
+    create_temp_table = table_query_info.create_temp_table
     if create_temp_table:
         if need_params:
             args = start_date, end_date
@@ -118,27 +122,6 @@ def query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
         copy_query = "COPY ({}) TO STDOUT  DELIMITER ',' CSV HEADER;".format(query)
         cur.copy_expert(copy_query, file_to_write)
         logging.info("{} table contents successfully written to {}\n".format(table_name, file_path))
-
-
-def get_tables_and_query_mapping():
-    '''
-    Gets an array of queries to get the data from each table. Starts with the timestamp in item_ts table
-    :return: an array of queries for fetching data in each tables.
-    '''
-    # Each element is of the format (table_name, sql_query, params_required, temp_table_created)
-    tables_and_query = []
-    tables_and_query.append(('item_ts', "select * from item_ts where start_ts between '{}' and '{}'", True, False))
-    tables_and_query.append(('item', 'create temp table item_temp as (select * from item i where exists (select 1 from item_ts it where it.domain_id = i.domain_id and it.project_id = i.project_id and it.item_id = i.item_id and it.item_type_id = i.item_type_id and it.start_ts between %s and %s))', True, True))
-    tables_and_query.append(('item_type', 'select * from item_type where item_type_id in (select item_type_id from item_temp)', False, False ))
-    tables_and_query.append(('catalog_item', 'select * from catalog_item where item_type_id in (select item_type_id from item_temp)', False, False))
-    tables_and_query.append(('project', 'create temp table project_temp as (select distinct p.* from project p inner join item_temp i on p.domain_id = i.domain_id and p.project_id = i.project_id)', False, True))
-    tables_and_query.append(('domain', 'select * from domain where domain_id in (select domain_id from project_temp)', False, False))
-    tables_and_query.append(('institution2project', 'create temp table institution2project_temp as (select * from institution2project i2p where exists (select 1 from project_temp p where p.project_id = i2p.project_id and p.domain_id = i2p.domain_id))', False, True))
-    tables_and_query.append(('institution', 'select * from institution where institution_id in (select institution_id from institution2project_temp)', False, False))
-    tables_and_query.append(('project2poc', 'create temp table project2poc_temp as (select distinct p2p.* from project2poc p2p inner join project_temp p on p2p.domain_id = p.domain_id and p2p.project_id = p.project_id)', False, True))
-    tables_and_query.append(('poc', 'select * from poc where poc_id in (select poc_id from project2poc_temp)', False, False))
-    tables_and_query.append(('address', 'select * from address where address_id in (select address_id from poc inner join project2poc_temp p on poc.poc_id = p.poc_id)', False, False))
-    return tables_and_query
 
 
 if __name__ == '__main__':
@@ -163,7 +146,7 @@ if __name__ == '__main__':
     cur = conn.cursor()
     # Dump CSV files
     base_path = "{}/moc_reporting_csv_dump/{}".format(os.getcwd(), datetime.now().strftime("%m_%d_%Y_%H:%M:%S"))
-    for table_query_info in get_tables_and_query_mapping():
+    for table_query_info in QueryInfo.get_query_infos_by_timeframe():
         query_and_write_data(cur, table_query_info, base_path, start_date, end_date)
     # Close connection
     conn.close()
