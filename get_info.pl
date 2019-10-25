@@ -14,43 +14,21 @@ use strict;
 sub get_cred
     {
     my $file=shift;
-    my $n=shift;
-    my $type;
-    my $endpt;
-    my $user;
-    my $pass;
-    my $pg_user;
-    my $pg_pass;
-    my $fp;
-    if(open(FP, "<$file"))
-        {
-        my $cnt=0;
-        my $line=<FP>;
-        while($cnt < $n)
-            {
-            $line=<FP>;
-            $cnt=$cnt+1;
-            }
-        if($line =~ /[ \t]*stack[ ]*=[ ]*([^ \t\n]*)[ ]*[,\t]*/) { $type='stack'; $endpt=$1; }
-        if($line =~ /[ \t]*username[ ]*=[ ]*([^ \t\n]*)[ ]*[,\t]*/) { $user=$1; }
-        if($line =~ /[ \t]*password[ ]*=[ ]*([^ \t\n]*)[ ]*[,\t]*/) { $pass=$1; }
-        if($line =~  /[ \t]*pg_user[ ]*=[ ]*([^ \t\n]*)[ ]*[,\t]*/) { $pg_user=$1; }
-        if($line =~  /[ \t]*pg_pass[ ]*=[ ]*([^ \t\n]*)[ ]*[,\t]*/) { $pg_pass=$1; }
-        }
-    else
-        {
-        print "Error: cannot open file \"$file\"\n";
-        exit();
-        }
-    return ($type, $endpt, $user, $pass, $pg_user, $pg_pass);
+    my $creds=undef;
+    my $text=undef;
+    if(open(FP,$file)) { while(my $line=<FP>) { chomp($line); $text=$text.$line; } }
+    print $text;
+    if(defined($text)) { $creds=decode_json($text); }
+    return $creds;
     }
 
 sub get_conn
     {
+    my $db_name=shift;
     my $user=shift;
     my $pass=shift;
-
-    my $conn = DBI->connect("dbi:Pg:dbname=postgres",$user,$pass);
+    
+    my $conn = DBI->connect("dbi:Pg:dbname=".$db_name,$user,$pass);
     return $conn;
     }
 
@@ -1275,8 +1253,9 @@ sub get_panko_data
         print "WARNING: Panko is not in catalog - continueing\n";
         return $os_info; 
         }
-    #print "panko endpt = '$endpt'\n";
-    # print "URL: $url\n";
+    print "panko endpt = '$endpt'\n";
+    print "URL: $url\n";
+
     my $curl=new WWW::Curl::Easy;
     my $resp;
     $curl->setopt(CURLOPT_URL,$url);
@@ -1284,44 +1263,47 @@ sub get_panko_data
     $curl->setopt(CURLOPT_WRITEDATA, \$resp);
     $curl->perform();
 
-    #print "\n\n".$resp."\n\n";
+    print "\n\n>".$resp."<\n\n";
 
-    my $fields=from_json $resp;
-    my $rec;
-    for my $event (@$fields)
+    if(length($resp)>5)
         {
-        if($event->{event_type}=~/compute\.instance/)
+        my $fields=from_json $resp;
+        my $rec;
+        for my $event (@$fields)
             {
-            $rec=undef;
-            $rec->{event_type}=$event->{event_type};
-            # print Dumper $event;
-            foreach my $trait (@{$event->{traits}})
+            if($event->{event_type}=~/compute\.instance/)
                 {
-                if   ($trait->{name} eq  'project_id')             { $rec->{project_id}  = $trait->{value}; }
-                elsif($trait->{name} eq  'instance_id')            { $rec->{instance_id} = $trait->{value}; }
-                elsif($trait->{name} eq  'audit_period_beginning') { $rec->{start_ts}    = $trait->{value}; }
-                elsif($trait->{name} eq  'audit_period_ending')    { $rec->{end_ts}      = $trait->{value}; }
-                elsif($trait->{name} eq  'state')                  { $rec->{state}       = $trait->{value}; }
-                elsif($trait->{name} eq  'instance_type')          { $rec->{flavor}      = $trait->{value}; }
-                elsif($trait->{name} eq  'vcpus')                  { $rec->{vcpus}       = $trait->{value}; }
-                elsif($trait->{name} eq  'memory_mb')              { $rec->{mem}         = $trait->{value}; }
-                elsif($trait->{name} eq  'disk_gb')                { $rec->{disk_gb}     = $trait->{value}; }
-                }
-            $os_info->{project}->{$rec->{project_id}}->{vm_cnt}=1;
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{event_cnt}=1;
+                $rec=undef;
+                $rec->{event_type}=$event->{event_type};
+                # print Dumper $event;
+                foreach my $trait (@{$event->{traits}})
+                    {
+                    if   ($trait->{name} eq  'project_id')             { $rec->{project_id}  = $trait->{value}; }
+                    elsif($trait->{name} eq  'instance_id')            { $rec->{instance_id} = $trait->{value}; }
+                    elsif($trait->{name} eq  'audit_period_beginning') { $rec->{start_ts}    = $trait->{value}; }
+                    elsif($trait->{name} eq  'audit_period_ending')    { $rec->{end_ts}      = $trait->{value}; }
+                    elsif($trait->{name} eq  'state')                  { $rec->{state}       = $trait->{value}; }
+                    elsif($trait->{name} eq  'instance_type')          { $rec->{flavor}      = $trait->{value}; }
+                    elsif($trait->{name} eq  'vcpus')                  { $rec->{vcpus}       = $trait->{value}; }
+                    elsif($trait->{name} eq  'memory_mb')              { $rec->{mem}         = $trait->{value}; }
+                    elsif($trait->{name} eq  'disk_gb')                { $rec->{disk_gb}     = $trait->{value}; }
+                    }
+                $os_info->{project}->{$rec->{project_id}}->{vm_cnt}=1;
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{event_cnt}=1;
 
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{end_ts}=$rec->{end_ts};
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{state}=$rec->{state};
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{flavor}=$rec->{flavor};
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{vcpus}=$rec->{vcpus};
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{mem}=$rec->{mem}/1024;
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{disk_gb}=$rec->{disk_gb};
-            $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{event_type}=$rec->{event_type};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{end_ts}=$rec->{end_ts};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{state}=$rec->{state};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{flavor}=$rec->{flavor};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{vcpus}=$rec->{vcpus};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{mem}=$rec->{mem}/1024;
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{disk_gb}=$rec->{disk_gb};
+                $os_info->{project}->{$rec->{project_id}}->{VM}->{$rec->{instance_id}}->{events}->{$rec->{start_ts}}->{event_type}=$rec->{event_type};
+                }
+            else 
+                {
+                print STDERR "---> Unhandeled event: $event->{event_type}\n";
+                }    
             }
-        else 
-            {
-            print STDERR "---> Unhandeled event: $event->{event_type}\n";
-            }    
         }
     #print Dumper{@$fields};
     #print Dumper{%$os_info};
@@ -1626,17 +1608,9 @@ sub store_billing_info
 
         #add users
         store_users($conn,$os_data->{users},$region,$region_id,$timestamp);
-        #foreach my $u (keys %{$os_data->{users}})
-        #    {
-        #    my $poc_id=get_poc_id($conn,$region_id,$u,$os_data->{users}->{$u}->{name},$os_data->{users}->{$u}->{email});
-        #    if(!defined($poc_id)) 
-        #        {
-        #        print "Warning: unable to add user $u, $os_data->{users}->{$u}->{name}, $os_data->{users}->{$u}->{email} to region: $region \n";
-        #        }
-        #    }
 
         #add projects
-        store_projects($conn,$os_data->{projects},$region,$region_id,$timestamp);
+        #store_projects($conn,$os_data->{projects},$region,$region_id,$timestamp);
         foreach my $p (keys %{$os_data->{'project'}})
             {
             my $project_id = get_project_id($conn,$region_id,$p,$os_data->{'project'}->{$p}->{'name'});
@@ -1784,19 +1758,31 @@ sub store_billing_info
 my $done=0;
 my $os_info;
 my $n=0;
-while( !$done )
+my $creds=get_cred("../.bills.cred");
+my $user;
+my $type;
+my $auth_url;
+my $pass;
+my $pg_user;
+my $pg_pass;
+
+print "A-->\n\n";
+print Dumper{%$creds};  
+
+foreach my $service (@{$creds->{services}})
     {
-    my ($type, $auth_url, $user,$pass,$pg_user,$pg_pass)=get_cred(".bills.cred", $n);
-    if(length($user)>0)
+    print Dumper{%$service};  
+
+    if(defined($service))
         {
-        if($type eq 'stack')
+        if($service->{'type'} eq 'OpenStack')
             {
             print "0 --> OpenStack Authenticate\n";
-            $os_info=get_unscoped_token($auth_url,$user,$pass);
+            $os_info=get_unscoped_token($service->{'url'},$service->{'user'},$service->{'pass'});
 
             print "1 --> OpenStack get projects and login to to Admin \n";
-            $os_info=get_os_projects($auth_url,$os_info);
-            my $tac=get_scoped_token($auth_url,$os_info->{token},$os_info->{admin}->{id});
+            $os_info=get_os_projects($service->{'url'},$os_info);
+            my $tac=get_scoped_token($service->{'url'},$os_info->{token},$os_info->{admin}->{id});
             $os_info->{admin}->{token}=$tac->{token};
             $os_info->{admin}->{catalog}=$tac->{catalog};
 
@@ -1811,27 +1797,27 @@ while( !$done )
             $os_info=get_all_users($os_info);
 
             print "3 --> OpenStack get flavors \n";
-            my $flavors=get_os_flavors($os_info);
-            print Dumper $flavors;
+#            my $flavors=get_os_flavors($os_info);
+#            print Dumper $flavors;
 
             print "4 --> OpenStack get router, networks, subnets, floating_ips\n";
             #$os_info = get_neutron_info($os_info);
-            $os_info=get_floating_ips($os_info);
+#            $os_info=get_floating_ips($os_info);
 
             print "5 --> OpenStack get instances\n";
-            $os_info = get_all_vm_details($os_info, $flavors);
+#            $os_info = get_all_vm_details($os_info, $flavors);
 
             print "5.2 --> OpenStack get cinder data\n";
-            $os_info=get_volumes_from_cinderV3($os_info);
+#            $os_info=get_volumes_from_cinderV3($os_info);
             #$os_info=get_volumes_from_cinderV2($os_info);
 
             print "6 --> OpenStack get data from panko\n";
-            $os_info=get_panko_data($os_info);
+#            $os_info=get_panko_data($os_info);
 
             print "7 --> OpenStack store data into database\n";
             print Dumper{%$os_info};
 
-            my $conn=get_conn($pg_user,$pg_pass);
+            my $conn=get_conn($creds->{'database'}->{'dbname'},$creds->{'database'}->{'user'},$creds->{'database'}->{'pass'});
 
             store_billing_info($conn,$os_info);
             del_conn($conn);
@@ -1844,6 +1830,7 @@ while( !$done )
         }
     $n=$n+1;
     }
+
 exit;
 
 
