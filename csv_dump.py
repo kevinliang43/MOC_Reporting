@@ -110,7 +110,7 @@ def query_and_write_data(cur, table_query_info, base_path, file_prefix):
     file_path = "{}/{}.csv".format(base_path, file_prefix + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
-    with open(file_path, "w+") as file_to_write:  # TODO: Should we write if the file already exists?
+    with open(file_path, "w+") as file_to_write:
         copy_query = "COPY ({}) TO STDOUT  DELIMITER ',' CSV HEADER;".format(query)
         cur.copy_expert(copy_query, file_to_write)
         logging.info("{} table contents successfully written to {}\n".format(table_name, file_path))
@@ -131,6 +131,12 @@ def parse_program_execution_args():
 
     project_parser = subparsers.add_parser('project')
     project_parser.add_argument("--project_id", help="the project id to filter the data", required=True)
+    project_parser.add_argument("--start_timestamp",
+                                help="the start timestamp where a VM was active",
+                                required=True)
+    project_parser.add_argument("--end_timestamp",
+                                help="the end timestamp till when a VM was active",
+                                required=True)
     args = parser.parse_args()
 
     # Filter based arguments in command line
@@ -142,8 +148,10 @@ def parse_program_execution_args():
         table_query_infos = QueryInfo.get_query_infos_by_timeframe(start_date, end_date)
     elif args.filter_type == 'project':
         project_id = args.project_id
-        file_prefix = project_id
-        table_query_infos = QueryInfo.get_query_infos_by_project(project_id)
+        start_date = args.start_timestamp
+        end_date = args.end_timestamp
+        file_prefix = project_id + start_date + "_" + end_date
+        table_query_infos = QueryInfo.get_query_infos_by_project(project_id, start_date, end_date)
     else:
         print("Invalid filtering types")
 

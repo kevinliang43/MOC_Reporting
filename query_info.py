@@ -27,7 +27,7 @@ class QueryInfo:
         return query_infos
 
     @staticmethod
-    def get_query_infos_by_project(project_id):
+    def get_query_infos_by_project(project_id, start_date, end_date):
         '''
         Gets an array of queries to get the data from each table. Starts with the project_id in project table
         :return: an array of queries for fetching data in each tables.
@@ -49,8 +49,8 @@ class QueryInfo:
         query_infos.append(QueryInfo('item2item', 'select * from item2item where primary_item in (select item_id from item_temp)', False, False))
         query_infos.append(QueryInfo('item_type', 'create temp table item_type_temp as (select * from item_type where item_type_id in (select item_type_id from item_temp))', False, True))
         query_infos.append(QueryInfo('catalog_item', 'select * from catalog_item where item_type_id in (select item_type_id in item_type_temp)', False, False))
-        query_infos.append(QueryInfo('raw_item_ts', 'select * from raw_item_ts where item_id in item_temp', False, False))
-        query_infos.append(QueryInfo('summarized_item_ts', 'select * from summerized_item_ts where item_id in item_temp', False, False))
+        query_infos.append(QueryInfo('raw_item_ts', "select * from raw_item_ts where item_id in item_temp and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
+        query_infos.append(QueryInfo('summarized_item_ts', "select * from summerized_item_ts where item_id in item_temp and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
 
 
 
