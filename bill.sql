@@ -211,7 +211,9 @@ CREATE TABLE raw_item_ts (
                 state VARCHAR(50),
                 start_ts TIMESTAMP,
                 end_ts TIMESTAMP,
-                CONSTRAINT raw_item_ts_pk PRIMARY KEY (item_id)
+                CONSTRAINT raw_item_ts_pk PRIMARY KEY (item_id),
+                CONSTRAINT start_ts_pk PRIMARY KEY (start_ts),
+                CONSTRAINT end_ts_pk PRIMARY KEY (end_ts)
 );
 
 
