@@ -25,7 +25,7 @@ drop table if exists item cascade;
 drop table if exists item2item;
 drop table if exists catalog_item cascade;
 drop table if exists raw_item_ts cascade;
-drop table if exists summerized_item_ts cascade;
+drop table if exists summarized_item_ts cascade;
 drop table if exists hardware_inventory cascade;
 
 
@@ -215,18 +215,19 @@ CREATE TABLE raw_item_ts (
 );
 
 
-CREATE TABLE summerized_item_ts (
+CREATE TABLE summarized_item_ts (
                 item_id BIGINT NOT NULL,
                 start_ts TIMESTAMP NOT NULL,
                 catalog_item_id INTEGER NOT NULL,
                 state VARCHAR(50) NOT NULL,
                 end_ts TIMESTAMP NOT NULL,
-                summary_period INTEGER NOT NULL,
-                CONSTRAINT summerized_item_ts_pk PRIMARY KEY (item_id)
+                summary_period VARCHAR(16) NOT NULL,
+		state_time INTEGER NOT NULL,	
+                CONSTRAINT summarized_item_ts_pk PRIMARY KEY (item_id)
 );
 
 /* 
-COMMENT ON COLUMN summerized_item_ts.summary_period IS 'Summary periods:
+COMMENT ON COLUMN summarized_item_ts.summary_period IS 'Summary periods:
 
 1 -> daily
 2 -> weekly
@@ -380,7 +381,7 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION
 NOT DEFERRABLE;
 
-ALTER TABLE summerized_item_ts ADD CONSTRAINT raw_item_ts_summerized_item_ts_fk
+ALTER TABLE summarized_item_ts ADD CONSTRAINT raw_item_ts_summarized_item_ts_fk
 FOREIGN KEY (item_id)
 REFERENCES raw_item_ts (item_id)
 ON DELETE NO ACTION
