@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+
+import argparse, json, os, sys
+
+from urllib.request import urlopen
+
+DEFAULT_CONFIG_F = "api_config.json"
+
+ENV_TOKENS = [("AUTH", "auth")]
+
+
+class DictAttrWrapper:
+  def __init__(self, initial={}):
+    self.__dict__ = initial
+
+class Stats:
+  def __init__(self):
+    self.okay = True
+    self.total = 0
+    self.failed = 0
+
+  def testOkay(self):
+    self.total += 1
+
+  def testFail(self):
+    self.okay = False
+    self.total += 1
+    self.failed += 1
+
+  def printSummary(self):
+    if self.okay:
+      print("[PASS] {s.total} Tests".format(s=self))
+    else:
+      print("[FAIL] {s.failed} ({s.total}) Tests".format(s=self))
+
+class Runner:
+  def __init__(self):
+    self.config = DictAttrWrapper()
+    self.env = None
+    self.stats = None
+    self.conn = None
+
+  def loadEnv(self, tokens):
+    if self.env is not None:
+      raise ValueError("Environment config already loaded")
+    self.env = DictAttrWrapper()
+    for token, val in tokens:
+      k = os.environ.get(token)
+      if k is not None:
+        self.env.__dict__[val] = k
+
+  def addConfig(self, e):
+    for k, v in e.items():
+      if hasattr(self.config, k):
+        print("[WARN] key {} already in config".format(k))
+      self.config.__dict__[k] = v
+
+  def loadConfigFromFile(self, f):
+    v = json.load(f)
+    if type(v) is not dict:
+      raise ValueError("Config file should contain a dict")
+    self.addConfig(v)
+
+  def evalfString(self, s):
+    print(s)
+    print(type(s))
+    print(self.config.__dict__)
+    print(self.env.__dict__)
+    return s.format(config=self.config, env=self.env)
+
+  def init(self):
+    if self.stats is not None:
+      raise ValueError("Test batch started. Call finalize before a reinit")
+    assert type(self.config.endpoint) is str
+    self.stats = Stats()
+
+  def runTest(self, name, payload):
+    t = self.evalfString(payload)
+    try:
+      resp = urlopen(self.config.endpoint, data=t)
+      if resp.code == 200:
+        self.stats.testOkay()
+        print("[PASS] {} ({})\n{}\n".format(name, resp.code, resp.read()))
+      else: 
+        self.stats.testFail()
+        print("[FAIL] {} ({})\n{}\n".format(name, resp.code, resp.read()))
+      resp.close()
+    except err:
+      self.stats.testFail()
+      print("[FAIL] {}:\n{}\n".format(name, err))
+
+
+  def runAll(self, tests):
+    for name, payload in tests:
+      self.runTest(name, payload)
+
+  def finalize(self):
+    s = self.stats
+    self.stats = None
+    return s
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--config', type=open, nargs='?',
+      default=open(DEFAULT_CONFIG_F))
+  parser.add_argument('tests', type=open, nargs='+')
+  args = parser.parse_args()
+
+  runner = Runner()
+  runner.loadConfigFromFile(args.config)
+  runner.loadEnv(ENV_TOKENS)
+
+  runner.init()
+  runner.runAll([(f.name, f.read()) for f in args.tests])
+  stats = runner.finalize()
+  stats.print_summary()
+
+  sys.exit(0 if stats.okay else 1)
+
+
+if __name__ == "__main__":
+  main()
+
+
