@@ -1,0 +1,7 @@
+{
+  "method": "item.get",
+  "params": {
+    "hostids": ["hostid"],
+    "output": "extend"
+  }
+}

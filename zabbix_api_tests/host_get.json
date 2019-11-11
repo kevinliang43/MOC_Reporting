@@ -1,0 +1,7 @@
+{
+  "method": "host.get",
+  "params": {
+    "output": [ "hostid", "host" ],
+    "selectInterfaces": [ "interfaceid", "ip" ]
+  }
+}
