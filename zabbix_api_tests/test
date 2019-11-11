@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 DEFAULT_CONFIG_F = "api_config.json"
 
-ENV_TOKENS = [("AUTH", "auth")]
+USER_AGENT = 'MOC_Reporting Zabbix API Test Apparatus (python 0x{}) (urllib)'.format(sys.hexversion)
+RPC_VERSION = "2.0"
+AUTH_BLOCK = {
+  'method': 'user.login',
+  'params': {
+    'user': None,
+    'password': None
+  }
+}
 
-
-class DictAttrWrapper:
-  def __init__(self, initial={}):
-    self.__dict__ = initial
 
 class Stats:
+  """ Stats (None):
+      The Stats class defines a utility wrapper object for collecting success 
+      and failure counts for a given test run
+  """
   def __init__(self):
     self.okay = True
     self.total = 0
@@ -27,70 +35,147 @@ class Stats:
     self.total += 1
     self.failed += 1
 
-  def printSummary(self):
+  def print_summary(self):
     if self.okay:
       print("[PASS] {s.total} Tests".format(s=self))
     else:
       print("[FAIL] {s.failed} ({s.total}) Tests".format(s=self))
 
+
 class Runner:
+  """ Runner (None)
+      The Runner class 
+  """
   def __init__(self):
-    self.config = DictAttrWrapper()
+    self.config = {}
     self.env = None
     self.stats = None
-    self.conn = None
+    #self.conn = None
+    self.tx_id = 1
+    self.auth_token = None
 
   def loadEnv(self, tokens):
+    """ Runner.loadEnv: ??? -> None
+        loadEnv
+    """
     if self.env is not None:
       raise ValueError("Environment config already loaded")
-    self.env = DictAttrWrapper()
+    self.env = {}
     for token, val in tokens:
       k = os.environ.get(token)
       if k is not None:
-        self.env.__dict__[val] = k
+        self.env[val] = k
 
   def addConfig(self, e):
+    """ Runner.addConfig: dict -> None
+        addConfig
+    """
     for k, v in e.items():
       if hasattr(self.config, k):
         print("[WARN] key {} already in config".format(k))
-      self.config.__dict__[k] = v
+      self.config[k] = v
 
   def loadConfigFromFile(self, f):
+    """ Runner.loadConfigFromFile: File -> None
+        loadConfigFromFile
+    """
     v = json.load(f)
     if type(v) is not dict:
       raise ValueError("Config file should contain a dict")
     self.addConfig(v)
 
-  def evalfString(self, s):
-    print(s)
-    print(type(s))
-    print(self.config.__dict__)
-    print(self.env.__dict__)
-    return s.format(config=self.config, env=self.env)
+  def dumpHeaders(self, resp):
+    """ Runner.dumpHeaders: HTTPResponse -> None
+        dumpHeaders prints all response headers in the given object to stdout
+    """
+    headers = resp.getheaders()
+    if len(headers) > 0:
+      print("Header Items:")
+      for k, v in headers:
+        print("  {}: {}".format(k, v))
+
+  def buildRequest(self, req):
+    """ Runner.buildRequest: Dict -> Dict
+        buildRequest
+    """
+    req['jsonrpc'] = RPC_VERSION
+    req['id'] = self.tx_id
+    self.tx_id += 1
+    if self.auth_token is not None and 'auth' not in req:
+      req['auth'] = self.auth_token
+    if 'params' in req and req['params'] is not None:
+      for k in req['params']:
+        # TODO: This is gross: blindly overwrites even things we don't want it to
+        #       Rewrite to take input preferences into account
+        if k in self.config:
+          req['params'][k] = self.config[k]
+    else:
+      req['params'] = {}
+    return req
+
+  def sendReq(self, r):
+    """ Runner.sendReq: Dict -> HTTPResponse
+        sendReq
+
+        Precondition: Expects that the dictionary is a proper Zabbix request
+            eg. is a result from Runner.buildRequest
+    """
+    req = Request(self.config['endpoint'])
+    req.method = 'POST'
+    req.data = json.dumps(r).encode('utf-8')
+    req.add_header('Content-Type', 'application/json-rpc')
+    req.add_header('User-Agent', USER_AGENT)
+
+    resp = urlopen(req)
+    #self.dumpHeaders(resp)
+    return resp
+
+  def doAuth(self):
+    """ Runner.doAuth: None -> None
+        doAuth
+    """
+    print("doAuth")
+    jReq = self.buildRequest(AUTH_BLOCK.copy())
+    resp = self.sendReq(jReq)
+    jResp = json.load(resp)
+    assert 'result' in jResp
+    self.auth_token = jResp['result']
 
   def init(self):
+    """ Runner.init: None -> None
+        init
+    """
     if self.stats is not None:
       raise ValueError("Test batch started. Call finalize before a reinit")
-    assert type(self.config.endpoint) is str
+    assert type(self.config["endpoint"]) is str
     self.stats = Stats()
 
   def runTest(self, name, payload):
-    t = self.evalfString(payload)
-    try:
-      resp = urlopen(self.config.endpoint, data=t)
-      if resp.code == 200:
-        self.stats.testOkay()
-        print("[PASS] {} ({})\n{}\n".format(name, resp.code, resp.read()))
-      else: 
-        self.stats.testFail()
-        print("[FAIL] {} ({})\n{}\n".format(name, resp.code, resp.read()))
-      resp.close()
-    except err:
+    """ Runner.runTest: string x Dict -> None
+        runTest executes the given test
+    """
+    #try:
+    if ('auth' not in payload or payload['auth'] is not None) and self.auth_token is None:
+      self.doAuth()
+    jReq = self.buildRequest(payload)
+    resp = self.sendReq(jReq)
+
+    if resp.code == 200:
+      self.stats.testOkay()
+      print("[PASS] {} ({})\n{}\n".format(name, resp.code, resp.read()))
+    else: 
       self.stats.testFail()
-      print("[FAIL] {}:\n{}\n".format(name, err))
+      print("[FAIL] {} ({})\n{}\n".format(name, resp.code, resp.read()))
+    resp.close()
+   # except Exception as err:
+   #   self.stats.testFail()
+   #   print("[FAIL] {}:\n{}\n".format(name, err))
 
 
   def runAll(self, tests):
+    """ Runner.runAll: list[(str, dict)] -> None
+        runAll
+    """
     for name, payload in tests:
       self.runTest(name, payload)
 
@@ -109,10 +194,10 @@ def main():
 
   runner = Runner()
   runner.loadConfigFromFile(args.config)
-  runner.loadEnv(ENV_TOKENS)
+  #runner.loadEnv(ENV_TOKENS) #Removed as doing Auth internally
 
   runner.init()
-  runner.runAll([(f.name, f.read()) for f in args.tests])
+  runner.runAll([(f.name, json.load(f)) for f in args.tests])
   stats = runner.finalize()
   stats.print_summary()
 
