@@ -223,7 +223,7 @@ CREATE TABLE summarized_item_ts (
                 end_ts TIMESTAMP NOT NULL,
                 summary_period VARCHAR(16) NOT NULL,
 		state_time INTEGER NOT NULL,	
-                CONSTRAINT summarized_item_ts_pk PRIMARY KEY (item_id, start_ts, end_ts, state),
+                CONSTRAINT summarized_item_ts_pk PRIMARY KEY (item_id, start_ts, end_ts, state)
 );
 
 /* 
