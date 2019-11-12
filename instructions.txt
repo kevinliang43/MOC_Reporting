@@ -1,7 +1,16 @@
 
-## Dumping csv files based on a timeframe:
+## Dumping csv files based on a different filtering techniques :
 - Before testing establish connection to you local DB by changing db name, host name and user name in config.json file.
+
 - To get the csv dump run the following command:
-python3 csv_dump.py --start_timestamp [start_date] --end_timestamp [end_date]
-eg: csv_dump.py --start_timestamp 2019-01-30 --end_timestamp 2019-01-31
+ a.filtering by timeframe:
+    python3 csv_dump.py timeframe --start_timestamp [start_date] --end_timestamp [end_date]
+    eg: python3 csv_dump.py timeframe --start_timestamp 2019-01-30 --end_timestamp 2019-01-31
+ b. filtering by project and timeframe:
+    python3 csv_dump.py project --project_id [project_id] --start_timestamp [start_date] --end_timestamp [end_date]
+    eg: python3 csv_dump.py project --project_id 1 --start_timestamp 2019-01-30 --end_timestamp 2019-01-31
+c. filtering by institution and timeframe:
+    python3 csv_dump.py institution --institution_id [institution_id] --start_timestamp [start_date] --end_timestamp [end_date]
+    eg: python3 csv_dump.py institution --institution_id 1 --start_timestamp 2019-01-30 --end_timestamp 2019-01-31
+
 - You should see the data dump in moc-reporting_csv_dump folder under the timestamp folder when it was run.
