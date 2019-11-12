@@ -77,6 +77,7 @@ def parse_program_execution_args():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='filter_type', required=True)
 
+    # Filtering arguments are start_timestamp and end_timestamp
     timeframe_parser = subparsers.add_parser('timeframe')
     timeframe_parser.add_argument("--start_timestamp",
                                   help="the start timestamp where a VM was active",
@@ -85,6 +86,7 @@ def parse_program_execution_args():
                                   help="the end timestamp till when a VM was active",
                                   required=True)
 
+    # Filtering arguments are project_id, start_timestamp and end_timestamp
     project_parser = subparsers.add_parser('project')
     project_parser.add_argument("--project_id", help="the project id to filter the data", required=True)
     project_parser.add_argument("--start_timestamp",
@@ -93,6 +95,16 @@ def parse_program_execution_args():
     project_parser.add_argument("--end_timestamp",
                                 help="the end timestamp till when a VM was active",
                                 required=True)
+
+    # Filtering arguments are institution_id, start_timestamp and end_timestamp
+    institution_parser = subparsers.add_parser('institution')
+    institution_parser.add_argument("--institution_id", help="the institution id to filter the data", required=True)
+    institution_parser.add_argument("--start_timestamp",
+                                    help="the start timestamp where a VM was active",
+                                    required=True)
+    institution_parser.add_argument("--end_timestamp",
+                                    help="the end timestamp till when a VM was active",
+                                    required=True)
     args = parser.parse_args()
 
     # Filter based arguments in command line
@@ -108,6 +120,12 @@ def parse_program_execution_args():
         end_date = args.end_timestamp
         file_prefix = project_id + start_date + "_" + end_date
         table_query_infos = QueryInfo.get_query_infos_by_project(project_id, start_date, end_date)
+    elif args.filter_type == 'institution':
+        institution_id = args.institution_id
+        start_date = args.start_timestamp
+        end_date = args.end_timestamp
+        file_prefix = institution_id + start_date + "_" + end_date
+        table_query_infos = QueryInfo.get_query_infos_by_institution(institution_id, start_date, end_date)
     else:
         print("Invalid filtering types")
 
