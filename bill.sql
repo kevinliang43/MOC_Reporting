@@ -211,9 +211,7 @@ CREATE TABLE raw_item_ts (
                 state VARCHAR(50),
                 start_ts TIMESTAMP,
                 end_ts TIMESTAMP,
-                CONSTRAINT raw_item_ts_pk PRIMARY KEY (item_id),
-                CONSTRAINT start_ts_pk PRIMARY KEY (start_ts),
-                CONSTRAINT end_ts_pk PRIMARY KEY (end_ts)
+                CONSTRAINT raw_item_ts_pk PRIMARY KEY (item_id, start_ts, end_ts)
 );
 
 
@@ -225,7 +223,7 @@ CREATE TABLE summarized_item_ts (
                 end_ts TIMESTAMP NOT NULL,
                 summary_period VARCHAR(16) NOT NULL,
 		state_time INTEGER NOT NULL,	
-                CONSTRAINT summarized_item_ts_pk PRIMARY KEY (item_id)
+                CONSTRAINT summarized_item_ts_pk PRIMARY KEY (item_id, start_ts, end_ts, state),
 );
 
 /* 
