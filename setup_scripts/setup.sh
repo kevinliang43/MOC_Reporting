@@ -37,7 +37,7 @@ echo "------------------------------------"
 unix_command sudo yum --enablerepo=extras install epel-release
 
 # Python
-inst yum python-pip python-devel gcc 
+inst yum python-pip python-devel python-dateutil gcc 
 
 # Upgrade Pip
 unix_command sudo pip install --upgrade pip

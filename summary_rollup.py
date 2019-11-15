@@ -3,6 +3,8 @@
 import logging
 import argparse
 import psycopg2
+import sys
+from dateutil.relativedelta import relativedelta
 from utils import initialize_logging, get_config, get_connection
 from datetime import datetime, timedelta
 
@@ -30,11 +32,11 @@ def calculate_end_date(start_date, period):
         Return:
             end_date (str): End Date of the (Format: YYYY-MM-DD)
     """
-    period_mapping = {"day":1, "week":7} #TODO: Include Month
-    
+    period_mapping = {"day": timedelta(days=1), "week":timedelta(days=7), "month": relativedelta(months=1)}
+
     # Calculate End Date
     start_date_fmt = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_fmt = start_date_fmt + timedelta(days=period_mapping[period])
+    end_date_fmt = start_date_fmt + period_mapping[period]
     end_date = datetime.strftime(end_date_fmt, "%Y-%m-%d") # Bring End Date back into str
 
     return end_date
@@ -153,10 +155,18 @@ if __name__ == '__main__':
     start_date = args.start_date
     period = args.period
     item_id = args.item_id
-    end_date = calculate_end_date(start_date, period)
-
+    
     # Initialize Logging
     initialize_logging()
+    
+    # Calculate End Date
+    # A period of 'month' requires a start date that is the first of a given month
+    end_date = calculate_end_date(start_date, period)
+    #FIXME
+    #if end_date == None:
+    #    logging.error("Monthly summary rollups requires a start date that is the first of a given month")
+    #    sys.exit()
+
     # Get DB Configs
     config = get_config()
     # Establish Connection to Database
@@ -178,7 +188,7 @@ if __name__ == '__main__':
         # Commit
         conn.commit()
     else:
-        logging.info("No rows found for the given parameters.")
+        logging.error("No rows found for the given parameters: (item_id: {}, start_date: {}, period: {})".format(item_id, start_date, period))
 
     # Close
     logging.info("Closing Connection to {}".format(config['dbname']))
