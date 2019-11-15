@@ -2,8 +2,10 @@
 
 import logging
 import argparse
+import psycopg2
 from utils import initialize_logging, get_config, get_connection
 from datetime import datetime, timedelta
+
 
 def time_delta(end_time, start_time):
     """
@@ -37,42 +39,41 @@ def calculate_end_date(start_date, period):
 
     return end_date
 
-def summarized_item_ts_max_id(cur):
-    """ Gets the highest ID from summarized_item_ts
-
+def execute_query(cur, query):
+    """ Executes a given query to a database pointed to by a given cursor
+        
         Args:
-            cur: cursor pointing to connected database
+            cur: cursor pointing to the connected database
+            query (str): String representing the query to execute
+
+        Returns:
+            Response from the query
     """
-    # Retrieve Max ID
-    query = "SELECT item_id FROM summarized_item_ts ORDER BY item_id DESC LIMIT 1"
-    cur.execute(query)
-    results = cur.fetchall()
-    if len(results) > 0:
-        return results[0][0]
-    else:
-        return 0
+    
+    try:
+        cur.execute(query)
+        results = cur.fetchall()
+        return results
+    except psycopg2.Error as e:
+        logging.info(e)
 
-
-def query_item_ts(cur, start_date, end_date, catalog_item_id):
+def query_item_ts(cur, start_date, end_date, item_id):
     """Queries all rows from raw_item_ts with the given item_id, start_date, and period
         Args:
         cur: Cursor to the connected database
         start_date (str): Start Date of the summary period (Format: YYYY-MM-DD)
         period (str): Period of the summary rollup (day, week, month)
-        catalog_item_id (str): ID of the item to create a summary roll up for
+        item_id (str): ID of the item to create a summary roll up for
     """
     
     # Format Query, Order by start_ts ASCENDING 
-    query = "SELECT * FROM raw_item_ts WHERE catalog_item_id={} AND start_ts>='{}' AND end_ts<'{}' ORDER BY start_ts ASC;".format(catalog_item_id, start_date, end_date)
+    query = "SELECT * FROM raw_item_ts WHERE item_id={} AND start_ts>='{}' AND end_ts<'{}' ORDER BY start_ts ASC;".format(item_id, start_date, end_date)
    
     # Log Query
-    logging.info("Querying usage data for ID: {} from {} to {}".format(catalog_item_id, start_date, end_date))
+    logging.info("Querying usage data for ID: {} from {} to {}".format(item_id, start_date, end_date))
 
-    # Execute Query
-    cur.execute(query)
-
-    # Retrieve Usage Data
-    usage_data = cur.fetchall()
+    # Execute Query and retrieve usage data
+    usage_data = execute_query(cur, query)
     return usage_data
 
 def aggregate_summary(usage_data):
@@ -113,7 +114,7 @@ def aggregate_summary(usage_data):
     
     return agg_summary
 
-def write_summary(cur, agg_summary, period, start_date, end_date, catalog_item_id):
+def write_summary(cur, agg_summary, period, start_date, end_date, item_id, catalog_item_id):
     """
         Writes the contents of a given aggregated summary dictionary
         to the summarized_item_ts
@@ -124,15 +125,18 @@ def write_summary(cur, agg_summary, period, start_date, end_date, catalog_item_i
             period (str): period of aggregation (day, week, month)
             start_date (str): Start date of Summary Period in the form (YYYY-MM-DD)
             end_date (str): End date of Summary Period in the form (YYYY-MM-DD)
-            catalog_item_id (str): ID of item that is being summarized
+            item_id (str): ID of item that is being summarized
+            catalog_item_id (str): Catalog ID of the item
     """
+ 
     query = """INSERT INTO summarized_item_ts (item_id, start_ts, catalog_item_id, state, end_ts, summary_period, state_time) VALUES({},'{}',{},'{}','{}','{}',{});"""
-    cur_id = summarized_item_ts_max_id(cur) + 1
 
+    # Write each item in aggregate summary
     for state, time in agg_summary.items():
-        logging.info("Inserting summary for ID: {} for state: {} from {} to {}".format(catalog_item_id, state, start_date, end_date))
-        cur.execute(query.format(cur_id, start_date, catalog_item_id, state, end_date, period, time))
-        cur_id += 1
+        # Log query being executed 
+        logging.info("Inserting summary for ID: {} for state: {} from {} to {}".format(item_id, state, start_date, end_date))
+        # Execute query
+        execute_query(cur, query.format(item_id, start_date, catalog_item_id, state, end_date, period, time))
 
 
 
@@ -142,13 +146,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_date", help="Start date of summary rollup (In the form of YYYY-MM-DD).", required=True)
     parser.add_argument("--period", choices=['day', 'week', 'month'], help="Summary Period (day, week, month).", required=True)
-    parser.add_argument("--catalog_item_id", help="ID of item to create summary rollup for.", required=True)
+    parser.add_argument("--item_id", help="ID of item to create summary rollup for.", required=True)
     args = parser.parse_args()
     
     # Args
     start_date = args.start_date
     period = args.period
-    catalog_item_id = args.catalog_item_id
+    item_id = args.item_id
     end_date = calculate_end_date(start_date, period)
 
     # Initialize Logging
@@ -160,17 +164,21 @@ if __name__ == '__main__':
     cur = conn.cursor()
 
     # Query raw_item_ts 
-    raw_item_ts_rows = query_item_ts(cur, start_date, end_date, catalog_item_id)
+    raw_item_ts_rows = query_item_ts(cur, start_date, end_date, item_id)
+    # Check if we are able to summarize
+    if len(raw_item_ts_rows) > 0:
+        catalog_item_id = raw_item_ts_rows[0][1]
 
-    # Aggregate
-    agg_summary = aggregate_summary(raw_item_ts_rows)
+        # Aggregate
+        agg_summary = aggregate_summary(raw_item_ts_rows)
 
-    print(summarized_item_ts_max_id(cur))
-    # Write to summarized_item_ts
-    write_summary(cur, agg_summary, period, start_date, end_date, catalog_item_id)
+        # Write to summarized_item_ts
+        write_summary(cur, agg_summary, period, start_date, end_date, item_id, catalog_item_id)
 
-    # Commit
-    conn.commit()
+        # Commit
+        conn.commit()
+    else:
+        logging.info("No rows found for the given parameters.")
 
     # Close
     logging.info("Closing Connection to {}".format(config['dbname']))
