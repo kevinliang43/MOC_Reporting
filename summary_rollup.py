@@ -162,10 +162,6 @@ if __name__ == '__main__':
     # Calculate End Date
     # A period of 'month' requires a start date that is the first of a given month
     end_date = calculate_end_date(start_date, period)
-    #FIXME
-    #if end_date == None:
-    #    logging.error("Monthly summary rollups requires a start date that is the first of a given month")
-    #    sys.exit()
 
     # Get DB Configs
     config = get_config()
