@@ -42,6 +42,19 @@ def check_directory(dir_path):
             else:
                 logging.info("File Path Exists: {}".format(dir_path))
 
+def write_table_output(cur, table_query_info, fp):
+    table_name = table_query_info.table_name
+    table_query = table_query_info.sql_query
+    create_temp_table = table_query_info.create_temp_table
+    if create_temp_table:
+        cur.execute(table_query)
+        # fetch from temp table
+        query = "select * from {}_temp".format(table_name)
+    else:
+        query = table_query
+    copy_query = "COPY ({}) TO STDOUT  DELIMITER ',' CSV HEADER;".format(query)
+    cur.copy_expert(copy_query, fp)
+
 def query_and_write_data(cur, table_query_info, base_path, file_prefix):
     '''Queries all data and headers from a given table, and writes it to a csv file.
     Path of the file is as such: {base_path}/{start_date_end_date_table_name}.csv
@@ -54,23 +67,12 @@ def query_and_write_data(cur, table_query_info, base_path, file_prefix):
         start_date: start endpoint where when the VM was active
         end_date:  end endpoint where the VM was active
     '''
-    table_name = table_query_info.table_name
-    table_query = table_query_info.sql_query
-    create_temp_table = table_query_info.create_temp_table
-    if create_temp_table:
-        cur.execute(table_query)
-        # fetch from temp table
-        query = "select * from {}_temp".format(table_name)
-    else:
-        query = table_query
     file_path = "{}/{}.csv".format(base_path, file_prefix + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
     with open(file_path, "w+") as file_to_write:
-        copy_query = "COPY ({}) TO STDOUT  DELIMITER ',' CSV HEADER;".format(query)
-        cur.copy_expert(copy_query, file_to_write)
-        logging.info("{} table contents successfully written to {}\n".format(table_name, file_path))
-
+        write_table_output(cur, table_query_info, file_to_write)
+    logging.info("{} table contents successfully written to {}\n".format(table_name, file_path))
 
 def parse_program_execution_args():
     # check for args
