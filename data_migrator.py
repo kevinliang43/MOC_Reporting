@@ -51,18 +51,6 @@ def transfer_data(from_db_conn, to_db_conn):
     poc_dummy_address = etl.replace(poc_transformed, 'address_id', None, -1)
     etl.todb(poc_dummy_address, to_db_conn, 'poc')
 
-    # Commented out since table institution2poc doesn't exist in old schema
-    #institution2poc = etl.fromdb(from_db_conn, 'select * from institution2poc')
-    #inst2poc_transformed = etl.rename(institution2poc, 'poc_role_id', 'role_id')
-    #etl.todb(inst2poc_transformed, to_db_conn, 'institution2poc')
-
-    # Role info added from bill.sql file
-    #role = etl.fromdb(from_db_conn, 'select * from poc_role')
-    #role_transformed = etl.rename(role, {'poc_role_id': 'role_id', 'poc_role_name': 'role_name',
-    #                                     'poc_role_desc': 'role_description',
-    #                                     'poc_role_type': 'role_level'})
-    #etl.todb(role_transformed, to_db_conn, 'role')
-
     project_names_table = etl.fromdb(from_db_conn, "select distinct project_name from project")
     moc_project_transformed = etl.addrownumbers(project_names_table)
     moc_project_transformed = etl.rename(moc_project_transformed, {'row': 'moc_project_id'})
