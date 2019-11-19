@@ -96,6 +96,9 @@ def transfer_data(from_db_conn, to_db_conn):
 
 
 if __name__ == '__main__':
+
+    # Source DB is the DB from which you have to migrate data which is based on the old schema model.
+    # The data in the source_db will be migrated to the moc_reporting DB. Provide the source_db configs below.
     source_db_config = {"dbname":"", "host":"", "user": "", "pass": ""}
     from_db, to_db = get_connection_to_dbs(source_db_config)
     transfer_data(from_db, to_db)
