@@ -16,26 +16,6 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 \vspace{42pt}
-<<<<<<< HEAD
-=======
-
-```{r, echo=FALSE, warning=FALSE, max.print=1}
-institution_n = "Northeastern University"
-csv_path="./csv/"
-csv_file_name="2019_10_02.csv"
-project_path = paste0(csv_path,"project/",csv_file_name)
-item_path = paste0(csv_path,"item/",csv_file_name)
-item_type_path = paste0(csv_path,"item_type/",csv_file_name)
-item_ts_path = paste0(csv_path,"item_ts/",csv_file_name)
-institution_path = paste0(csv_path,"institution/",csv_file_name)
-institution2project_path = paste0(csv_path,"institution2project/",csv_file_name)
-```
-
-## Institution: `r institution_n`
-
-
-\vspace{48pt}
->>>>>>> c3b2f43df380239ea77a7c8c9b6dd8ebc4098105
 
 <!-- Set variables -->
 <!-- institution_n : name of the institution, should reflect same as the one in the database. -->
@@ -81,7 +61,6 @@ pacman::p_load(pacman, dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret
 
 setwd(base_path)
 
-<<<<<<< HEAD
 # load all csv files from the path provided in the variables and replace all implicit NA with explicit NA.
 project <- read.csv (project_path, na.strings = "N/A")
 item_type <- read.csv (item_type_path, na.strings = "N/A")
@@ -106,67 +85,25 @@ item_usage <- select(item_ts_minmax,item_id,max_ts,min_ts) %>% group_by(item_id)
 
 
 # create final table which will be used to create the report. multiple read-write is present beacuse of the issue with implicit and explicit NA.
-=======
-
-
-```{r, echo=FALSE, warning=FALSE, max.print=1, results='asis' }
-library(pacman)
-pacman::p_load(pacman, dplyr, ggplot2, rio, gridExtra, scales, ggcorrplot, caret, e1071,lubridate,knitr, kableExtra,hflights,forcats, crayon)
-
-project <- read.csv (project_path, na.strings = "N/A")
-item_type <- read.csv (item_type_path, na.strings = "N/A")
-item <- read.csv (item_path, na.strings = "N/A")
-item_ts <- read.csv(item_ts_path, na.strings = "N/A")
-institution <- read.csv(institution_path, na.strings = "N/A")
-institution2project <- read.csv(institution2project_path, na.strings = "N/A")
-
-result_proj_inst <- left_join(project,institution2project, by = "project_id")
-result_proj_inst <- left_join(result_proj_inst,institution, by = "institution_id")
-proj2inst <- result_proj_inst %>% filter(institution_name == institution_n) %>% select(project_name)
-result <- right_join(item_type,item, by = "item_type_id")
-result2 <- right_join(result_proj_inst,result, by = "project_id")
-item_ts_minmax <- select(item_ts,item_id,start_ts) %>% group_by(item_id) %>% summarise(max_ts = max(as.POSIXct(start_ts)), min_ts = min(as.POSIXct(start_ts)))
-
-#item_ts_minmax <- read.csv ("./item_ts_minmax.csv", na.strings = "N/A")
-
-item_usage <- select(item_ts_minmax,item_id,max_ts,min_ts) %>% group_by(item_id) %>% summarise( usage = difftime(max_ts,min_ts,units = "hours"))
-
-
-
->>>>>>> c3b2f43df380239ea77a7c8c9b6dd8ebc4098105
 final_table <- select(right_join(item_usage,result2, by = "item_id"),institution_name, project_name,item_name, item_definition, usage) %>% mutate(usage = coalesce(usage, 0)) %>%  mutate_all(na_if,"") %>% mutate_if(is.factor,fct_explicit_na,na_level = "NA")
 write.csv(final_table, file = "final_table.csv")
 final_table <- read.csv ("./final_table.csv", na.strings = "N/A")
 
 #final_table = final_table%>% mutate_if(is.factor,fct_explicit_na,na_level = "(Missing)")
 
-<<<<<<< HEAD
 if (projects_in_rpt == "all") {
 active_proj_in_inst <- final_table %>% filter(institution_name == institution_n) %>% select(project_name)
 active_proj_in_inst <- unique(active_proj_in_inst)
 } else {
   active_proj_in_inst <- read.csv(text = projects_in_rpt)
 }
-=======
-
-active_proj_in_inst <- final_table %>% filter(institution_name == institution_n) %>% select(project_name)
-active_proj_in_inst <- unique(active_proj_in_inst)
->>>>>>> c3b2f43df380239ea77a7c8c9b6dd8ebc4098105
 
 for(i in 1:nrow(active_proj_in_inst)) {
   proj_n <- as.character(active_proj_in_inst[i,"project_name"])
 
 
-<<<<<<< HEAD
   cat("\n\n\\pagebreak\n")
   
-=======
-
-
-  cat("\n\n\\pagebreak\n")
-  
-
->>>>>>> c3b2f43df380239ea77a7c8c9b6dd8ebc4098105
   
 cat(paste("# Project: ", proj_n,""),'\n \n')
 cat("___")
