@@ -41,24 +41,27 @@ def calculate_end_date(start_date, period):
 
     return end_date
 
-def execute_query(cur, query):
+def execute_query(cur, query, return_rows):
     """ Executes a given query to a database pointed to by a given cursor
         
         Args:
             cur: cursor pointing to the connected database
             query (str): String representing the query to execute
+            return_rows(bool): True if there are any rows to be returned from the query. False otherwise
 
         Returns:
-            Response from the query
+            Response (List of rows) from the query
+            empty list if return_rows = False
     """
     
     try:
         cur.execute(query)
-        results = cur.fetchall()
+        results = []
+        if return_rows:
+            results = cur.fetchall()
         return results
     except psycopg2.Error as e:
-        logging.info(e)
-        return None
+        logging.error(e)
 
 def query_item_ts(cur, start_date, end_date, item_id):
     """Queries all rows from raw_item_ts with the given item_id, start_date, and period
@@ -76,7 +79,7 @@ def query_item_ts(cur, start_date, end_date, item_id):
     logging.info("Querying usage data for ID: {} from {} to {}".format(item_id, start_date, end_date))
 
     # Execute Query and retrieve usage data
-    usage_data = execute_query(cur, query)
+    usage_data = execute_query(cur, query, True)
     return usage_data
 
 def aggregate_summary(usage_data):
@@ -143,7 +146,8 @@ def write_summary(cur, agg_summary, period, start_date, end_date, item_id, catal
         # Log query being executed 
         logging.info("Inserting summary for ID: {} for state: {} from {} to {}".format(item_id, state, start_date, end_date))
         # Execute query
-        if execute_query(cur, query.format(item_id, start_date, catalog_item_id, state, end_date, period, time)) is None:
+        f_query = query.format(item_id, start_date, catalog_item_id, state, end_date, period, time)
+        if execute_query(cur, f_query, False) is None:
             return 0 # Query execution failed. Abort
     return 1 # Success
 
