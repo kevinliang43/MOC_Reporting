@@ -172,7 +172,7 @@ if __name__ == '__main__':
     # Query raw_item_ts 
     raw_item_ts_rows = query_item_ts(cur, start_date, end_date, item_id)
     # Check if we are able to summarize
-    if len(raw_item_ts_rows) > 0:
+    if raw_item_ts_rows and len(raw_item_ts_rows) > 0:
         catalog_item_id = raw_item_ts_rows[0][1]
 
         # Aggregate
