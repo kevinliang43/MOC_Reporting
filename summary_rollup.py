@@ -58,6 +58,7 @@ def execute_query(cur, query):
         return results
     except psycopg2.Error as e:
         logging.info(e)
+        return None
 
 def query_item_ts(cur, start_date, end_date, item_id):
     """Queries all rows from raw_item_ts with the given item_id, start_date, and period
@@ -129,6 +130,10 @@ def write_summary(cur, agg_summary, period, start_date, end_date, item_id, catal
             end_date (str): End date of Summary Period in the form (YYYY-MM-DD)
             item_id (str): ID of item that is being summarized
             catalog_item_id (str): Catalog ID of the item
+    
+        Returns:
+            1 for successful write
+            0 for unsuccessful write
     """
  
     query = """INSERT INTO summarized_item_ts (item_id, start_ts, catalog_item_id, state, end_ts, summary_period, state_time) VALUES({},'{}',{},'{}','{}','{}',{});"""
@@ -138,8 +143,9 @@ def write_summary(cur, agg_summary, period, start_date, end_date, item_id, catal
         # Log query being executed 
         logging.info("Inserting summary for ID: {} for state: {} from {} to {}".format(item_id, state, start_date, end_date))
         # Execute query
-        execute_query(cur, query.format(item_id, start_date, catalog_item_id, state, end_date, period, time))
-
+        if execute_query(cur, query.format(item_id, start_date, catalog_item_id, state, end_date, period, time)) is None:
+            return 0 # Query execution failed. Abort
+    return 1 # Success
 
 
 if __name__ == '__main__':
@@ -179,10 +185,13 @@ if __name__ == '__main__':
         agg_summary = aggregate_summary(raw_item_ts_rows)
 
         # Write to summarized_item_ts
-        write_summary(cur, agg_summary, period, start_date, end_date, item_id, catalog_item_id)
+        write_success = write_summary(cur, agg_summary, period, start_date, end_date, item_id, catalog_item_id)
 
-        # Commit
-        conn.commit()
+        # If successfully written all rows, commit.
+        if write_success:
+            conn.commit()
+        else:
+            logging.error("Error in writing summary rows. Please check inputs.")
     else:
         logging.error("No rows found for the given parameters: (item_id: {}, start_date: {}, period: {})".format(item_id, start_date, period))
 
