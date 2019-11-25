@@ -50,5 +50,6 @@ inst yum vim
 
 # Pip Install
 inst pip psycopg2
+inst pip petl
 
 
