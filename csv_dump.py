@@ -67,6 +67,7 @@ def query_and_write_data(cur, table_query_info, base_path, file_prefix):
         start_date: start endpoint where when the VM was active
         end_date:  end endpoint where the VM was active
     '''
+    table_name = table_query_info.table_name
     file_path = "{}/{}.csv".format(base_path, file_prefix + "_" + table_name)
     check_directory(file_path)
     logging.info("Dumping {} table to {}".format(table_name, file_path))
