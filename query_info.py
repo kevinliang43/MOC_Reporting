@@ -29,7 +29,7 @@ class QueryInfo:
         query_infos.append(QueryInfo('item_type','create temp table item_type_temp as (select * from item_type where item_type_id in (select item_type_id from item_temp))',False, True))
         query_infos.append(QueryInfo('catalog_item','select * from catalog_item where item_type_id in (select item_type_id from item_type_temp)',False, False))
         query_infos.append(QueryInfo('raw_item_ts',"select * from raw_item_ts where item_id in (select item_id from item_temp) and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
-        query_infos.append(QueryInfo('summarized_item_ts',"select * from summarized_item_ts where item_id in (select item_id from item_temp) and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
+        query_infos.append(QueryInfo('summarized_item_ts',"select * from summarized_item_ts where item_id in (select item_id from item_temp) and start_ts>='{}' and end_ts <= '{}'".format(start_date, end_date), True, False))
         return query_infos
 
     @staticmethod
@@ -51,7 +51,7 @@ class QueryInfo:
         query_infos.append(QueryInfo('item_type', 'create temp table item_type_temp as (select * from item_type where item_type_id in (select item_type_id from item_temp))', False, True))
         query_infos.append(QueryInfo('catalog_item', 'select * from catalog_item where item_type_id in (select item_type_id from item_type_temp)', False, False))
         query_infos.append(QueryInfo('raw_item_ts', "select * from raw_item_ts where item_id in (select item_id from item_temp) and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
-        query_infos.append(QueryInfo('summarized_item_ts',"select * from summarized_item_ts where item_id in (select item_id from item_temp) and start_ts between '{}' and '{}'".format(start_date, end_date), True, False))
+        query_infos.append(QueryInfo('summarized_item_ts',"select * from summarized_item_ts where item_id in (select item_id from item_temp) and start_ts>='{}' and end_ts <= '{}'".format(start_date, end_date), True, False))
         query_infos.append(QueryInfo('poc2institution', 'create temp table poc2institution_temp as (select * from poc2institution where institution_id = {})'.format(institution_id), True, True ))
         query_infos.append(QueryInfo('poc','create temp table poc_temp as (select * from poc where poc_id in (select poc_id from poc2institution_temp))', False, True))
         query_infos.append(QueryInfo('address','select * from address where address_id in (Select address_id from poc where poc_id in (select poc_id from poc2institution_temp))', False, False))

@@ -37,7 +37,7 @@ echo "------------------------------------"
 unix_command sudo yum --enablerepo=extras install epel-release
 
 # Python
-inst yum python-pip python-devel gcc 
+inst yum python-pip python-devel python-dateutil gcc 
 
 # Upgrade Pip
 unix_command sudo pip install --upgrade pip
@@ -49,6 +49,7 @@ inst yum postgresql-devel postgresql-server postgresql-contrib
 inst yum vim
 
 # Pip Install
-inst pip psycopg2 Flask
-
+inst pip psycopg2 Flask petl
+inst pip psycopg2
+inst pip petl
 
