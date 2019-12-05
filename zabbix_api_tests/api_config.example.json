@@ -1,0 +1,5 @@
+{
+  "user": "username",
+  "pwd": "password",
+  "endpoint": "hostname.tld/zabbix/api_jsonrpc.php"
+}

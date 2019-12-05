@@ -1,0 +1,7 @@
+{
+  "method": "item.get",
+  "params": {
+    "itemids": ["41066"],
+    "output": "extend"
+  }
+}
