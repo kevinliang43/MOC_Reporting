@@ -49,11 +49,9 @@ of the above personas for viewing. Further, the system must produce intermediary
 data store in the form of CSV dumps that serve as "raw" data that can be 
 provided to personas that wish to generate their own reports. Lastly, the system
 must aggregate that data across three major segments:
- 1. User - Any of our Personas above
- 2. Institution - as Partner Institution above
- 3. Projects - as below
-
-Each pair of the above segments are in Many-to-Many relationships. 
+ 1. Projects
+ 2. Institutions
+ 3. Timeframes where VMs have been in use(start time and end time)
 
 "Projects" refers to collections of MOC Service instances. Each Project defines
 an area of control and will have one User that is responsible for that Project.
@@ -178,9 +176,9 @@ system. The finished system will be deployed on MOC VMs.
 
 
 ## Minimum Acceptance Criteria
- 1. The system must be able to both generate a human readable report
+ 1. The system must be able to both generate a human readable report,
     summarizing OpenStack usage and dump across Institutions, Projects, and 
-    Users.
+    Timeframe.
  2. The system creates intermediate CSV files that represent the state of the
     database tables from a current period of time and be stored on MOC servers.
  3. ~~Openstack data collection, storing into databases, and saving as CSV~~
