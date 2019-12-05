@@ -185,45 +185,37 @@ of the Layer 2 aggregation system. The finished system will be deployed on MOC V
 
 
 ## Release Planning
-#### Release #1: (Sept 26)
+#### Sprint #1: (Sept 26)
  - Analysis of requirements and setting up the PostgreSQL database on the test environment along with other dependencies.
  - Second draft of Project Proposal after further investigation. Constructed entity relationship diagrams, cardinality relationship diagrams, and solution architecture diagrams.
  - Create Script to extract data from database and convert it into CSV files so that it could be further processed and customized reports could be generated from it.
-
-#### Release #2: (Oct 10)
- - Implement data validation for csv dump.
- - Create Report generation tool which will convert the csv data into customized report PDFs.
-    - Generate usage reports for Openstack
+ - Get test data from mentor and generate csv files for each tables.
+ 
+#### Sprint #2: (Oct 10)
+ - Implement data filteration for csv dump based on timeframe(start_date and end_date where VMs where active).
  - Create setup script that would install all the dependencies, schedule the csv generating script and setup the report generation tool in Linux machine.
- - Automate the system to run periodically
-    - Hook the script generating csv script to the report generation tool that would allow the sequential execution of the two.
- - Add functionality to csv dump script to be able to pull data from database in prod environment
-    - Needs to be configurable at run time.
+ - Draft R reporting script to generate usage reports from csv files.
+ - Database remodelling.
+ - Add functionality to CSV script to pull data from another VM hosting the database.
 
-#### Release #3: (Oct 24)
- - Implement tool for generating reports for Openshift.
-    - Extend data collection capabilities.
-    - Extend data model to incorporate Openshift.
-    - Extend report generation tool to generate reports for Openshift.
-##### ...
+#### Sprint #3: (Oct 24)
+ - Finalize R report generation script for OpenStack usage data.
+ - Implement data filteration based on a project ID and timeframe before dumping to CSV files.
+ - Implement data filteration based on an institution ID and timeframe before dumping to CSV files.
+ - Create Summary tables in database to sumamrize the VM usage based on daily, weekly, monthly basis.
+ - Update database config ini files to json format.
 
-#### Release #4: (Nov 7)
- - Implement tool for generating reports for Zabbix.
-    - Extend data collection capabilities for Zabbix.
-    - Extend data model to incorporate Zabbix.
-    - Extend report generation tool to generate reports for Zabbix.
-##### ...
+#### Sprint #4: (Nov 7)
+ - Remodel summary table attributes.
+ - Write a data schema migration script to transfer data from old data model to fit into new one.
+ - Instrument Zabbix data collection
+ - Transition all SQL queries to follow new schema model.
+ - Make a REST API design document about the csv_dump_api service the client uses to curl the csv dump packages.  
 
-#### Release #5: (Nov 21)
- - Implement tool for generating reports for Ceph.
-    - Extend data collection capabilities for Ceph.
-    - Extend data model to incorporate Ceph.
-    - Extend report generation tool to generate reports for Ceph.
-##### ...
-
-#### Release #6: (Dec 5)
- - Addition or modification in the tool according to the requirement.
- - Generate reports from the aggregated data gathered from openstack, zabbix, ceph and openshift.
+#### Sprint #5: (Nov 21)
+ - Implement the REST API to curl to a server endpoint and dump the filtered Openstack usage data to CSV files.
+ - Project Retrospective to evaluate the project success and team process.
+ - Preparation for Paper Presentation on Jupiter Rising.
 
 
 ## Open Questions
