@@ -6,7 +6,7 @@ Massachusetts Open Cloud (MOC) Reporting
 
 The ultimate goal of the MOC Reporting project (MOC Reporting System)
 is to generate actionable business objects in the form of human readable summary usage reports.
-These reports will summarize just OpenStack usage for now. The system must be able to generate these reports across the axes of Institution, Project, and User.
+These reports will summarize just OpenStack usage for now. The system must be able to generate these reports across the axes of Institution, Project, and Timeframe where VMs have been running.
 Furthermore, the system must also be able to generate intermediate CSV artifacts
 that act as a snapshot of the database holding all usage information being collected
 from OpenStack. CSV dumps will be created for all object and relationship tables
@@ -46,13 +46,7 @@ Virtual Machine at the MOC and produce Openstack usage reports that can be sent 
 data across three major segments:
  1. Projects
  2. Institutions
- 3. Users
-
-Each pair of segments has the following cardinality:
- - Project-Institution: Many-to-Many
- - Project-User: Many-to-Many
- - User-Institution: Many-to-One
-
+ 3. Timeframes where VMs have been in use(start time and end time)
 
 "Projects" refers to collections of MOC Service instances. Each Project defines
 an area of control and will have one User that is responsible for that Project.
@@ -168,7 +162,7 @@ of the Layer 2 aggregation system. The finished system will be deployed on MOC V
 
 ## Minimum Acceptance Criteria
  1. The system must be able to both generate a human readable report
-    summarizing OpenStack usage and dump across Institutions, Projects, and Users.
+    summarizing OpenStack usage and dump across Institutions, Projects and Timeframe.
  2. The system creates intermediate CSV files that represent the state of the
     database tables from a current period of time and be stored on MOC servers.
  3. Openstack data collection, storing into databases, and saving as CSV files will be automated.
